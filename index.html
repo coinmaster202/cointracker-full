@@ -1,27 +1,83 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Call Tracker</title>
+  <title>Call Minutes Tracker</title>
   <style>
-    body { font-family: sans-serif; padding: 20px; background: #f9f9f9; }
-    .container { max-width: 900px; margin: auto; background: #fff; padding: 20px; border-radius: 8px; }
-    button { margin: 5px; padding: 10px 15px; font-weight: bold; border-radius: 5px; cursor: pointer; }
-    .delete-btn { background: #e74c3c; color: white; border: none; }
-    table { margin-bottom: 30px; width: 100%; border-collapse: collapse; }
-    td, th { padding: 6px; border: 1px solid #ddd; }
+    body {
+      font-family: Arial, sans-serif;
+      background: #f9f9f9;
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      background: #fff;
+      max-width: 900px;
+      margin: auto;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    h2 {
+      margin-top: 0;
+    }
+    label {
+      display: block;
+      margin: 10px 0 5px;
+    }
+    input[type="number"], input[type="text"] {
+      padding: 6px;
+      width: 200px;
+    }
+    button {
+      margin: 10px 5px 10px 0;
+      padding: 10px 15px;
+      font-weight: bold;
+      border-radius: 5px;
+      cursor: pointer;
+      border: 1px solid #ccc;
+    }
+    .delete-btn {
+      background: #e74c3c;
+      color: white;
+      border: none;
+    }
+    table {
+      margin-top: 30px;
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: center;
+    }
+    th {
+      background-color: #f2f2f2;
+    }
+    .week-section {
+      margin-top: 40px;
+    }
   </style>
 </head>
 <body>
   <div class="container">
     <h2>Call Minutes Tracker</h2>
-    <label>Coins per Minute: <input id="coinRate" type="number" value="100"></label><br><br>
-    <label>Coins per $ (e.g. 750 = $1): <input id="coinToDollar" type="number" value="750"></label><br><br>
+
+    <label>Coins per Minute:
+      <input id="coinRate" type="number" value="100">
+    </label>
+
+    <label>Coins per $ (e.g. 750 = $1):
+      <input id="coinToDollar" type="number" value="750">
+    </label>
+
     <button onclick="saveRates()">Save Rates</button>
     <button onclick="exportToCSV()">Export to CSV</button>
     <button class="delete-btn" onclick="deleteHistory()">Delete History</button>
-    <div id="weeksContainer"></div>
+
+    <div id="weeksContainer" class="week-section"></div>
     <button onclick="addWeek()">Add Week</button>
   </div>
 
@@ -30,7 +86,8 @@
     const weeksContainer = document.getElementById("weeksContainer");
     const coinRateInput = document.getElementById("coinRate");
     const coinToDollarInput = document.getElementById("coinToDollar");
-    let data = JSON.parse(localStorage.getItem("callData")) || [];
+
+    let data = JSON.parse(localStorage.getItem("callData")) || [[]];
     let coinRate = parseInt(localStorage.getItem("coinRate")) || 100;
     let coinToDollar = parseInt(localStorage.getItem("coinToDollar")) || 750;
 
@@ -42,71 +99,71 @@
       coinToDollar = parseInt(coinToDollarInput.value);
       localStorage.setItem("coinRate", coinRate);
       localStorage.setItem("coinToDollar", coinToDollar);
-      updateAllWeeks();
-    }
-
-    function createWeek(index) {
-      const table = document.createElement("table");
-      table.border = "1";
-      table.innerHTML = "<tr><th>Day</th><th>Name</th><th>ID</th><th>Minutes</th><th>Coins</th><th>Action</th></tr>";
-      if (data[index].length === 0) {
-        defaultDays.forEach(day => {
-          data[index].push({ day, name: "", call: "", minutes: 0 });
-        });
-      }
-
-      data[index].forEach((row, i) => {
-        const coins = row.minutes * coinRate;
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td><input value="${row.day}" oninput="update(${index}, ${i}, 'day', this.value)"></td>
-          <td><input value="${row.name}" oninput="update(${index}, ${i}, 'name', this.value)"></td>
-          <td><input value="${row.call}" oninput="update(${index}, ${i}, 'call', this.value)"></td>
-          <td><input type="number" value="${row.minutes}" oninput="update(${index}, ${i}, 'minutes', this.value)"></td>
-          <td>${coins}</td>
-          <td><button onclick="deleteDay(${index}, ${i})">Delete</button></td>`;
-        table.appendChild(tr);
-      });
-
-      weeksContainer.appendChild(table);
+      refresh();
     }
 
     function update(w, d, key, val) {
       if (key === "minutes") val = parseInt(val) || 0;
       data[w][d][key] = val;
       saveData();
-      updateAllWeeks();
+      refresh();
     }
 
     function deleteDay(w, d) {
       data[w].splice(d, 1);
+      saveData();
       refresh();
     }
 
     function addWeek() {
-      data.push([]);
-      refresh();
-    }
-
-    function refresh() {
-      weeksContainer.innerHTML = "";
-      data.forEach((_, i) => createWeek(i));
+      const newWeek = defaultDays.map(day => ({
+        day,
+        name: "",
+        call: "",
+        minutes: 0
+      }));
+      data.push(newWeek);
       saveData();
+      refresh();
     }
 
-    function updateAllWeeks() {
-      refresh();
+    function createWeekTable(index) {
+      const table = document.createElement("table");
+      table.innerHTML = `<thead><tr><th>Day</th><th>Name</th><th>ID</th><th>Minutes</th><th>Coins</th><th>Action</th></tr></thead>`;
+      const tbody = document.createElement("tbody");
+
+      data[index].forEach((row, i) => {
+        const coins = row.minutes * coinRate;
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td><input type="text" value="${row.day}" oninput="update(${index}, ${i}, 'day', this.value)"></td>
+          <td><input type="text" value="${row.name}" oninput="update(${index}, ${i}, 'name', this.value)"></td>
+          <td><input type="text" value="${row.call}" oninput="update(${index}, ${i}, 'call', this.value)"></td>
+          <td><input type="number" value="${row.minutes}" oninput="update(${index}, ${i}, 'minutes', this.value)"></td>
+          <td>${coins}</td>
+          <td><button onclick="deleteDay(${index}, ${i})">Delete</button></td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      table.appendChild(tbody);
+      weeksContainer.appendChild(table);
     }
 
     function saveData() {
       localStorage.setItem("callData", JSON.stringify(data));
     }
 
+    function refresh() {
+      weeksContainer.innerHTML = "";
+      data.forEach((_, i) => createWeekTable(i));
+    }
+
     function exportToCSV() {
       let csv = "Week,Day,Name,ID,Minutes,Coins\n";
-      data.forEach((week, w) => {
+      data.forEach((week, i) => {
         week.forEach(row => {
-          csv += \`\${w + 1},\${row.day},\${row.name},\${row.call},\${row.minutes},\${row.minutes * coinRate}\n\`;
+          csv += `${i + 1},${row.day},${row.name},${row.call},${row.minutes},${row.minutes * coinRate}\n`;
         });
       });
       const blob = new Blob([csv], { type: "text/csv" });
@@ -122,31 +179,29 @@
       const storedData = JSON.parse(localStorage.getItem("callData")) || [];
 
       try {
-        const res = await fetch("https://call-tacker2.vercel.app/api/delete", {
+        const res = await fetch("/api/delete", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ data: storedData, ip, deviceInfo })
         });
-
-        const text = await res.text();
-        console.log("Status:", res.status);
-        console.log("Raw response:", text);
 
         if (res.ok) {
           localStorage.removeItem("callData");
           alert("✅ History deleted and sent successfully.");
           location.reload();
         } else {
-          alert("❌ Server error: " + res.status + " " + text);
+          const text = await res.text();
+          alert("❌ Server error: " + res.status + " - " + text);
         }
       } catch (err) {
-        console.error("❌ JS Fetch error:", err);
+        console.error("JavaScript error:", err);
         alert("❌ JavaScript error: " + err.message);
       }
     }
 
+    // Initial render
+    if (!data.length || data.every(week => week.length === 0)) addWeek();
     refresh();
-    if (data.length === 0) addWeek();
   </script>
 </body>
 </html>
