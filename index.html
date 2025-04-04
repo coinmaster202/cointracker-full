@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Call Tracker</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; background: #f9f9f9; }
+    .container { max-width: 900px; margin: auto; background: #fff; padding: 20px; border-radius: 8px; }
+    button { margin: 5px; padding: 10px 15px; font-weight: bold; border-radius: 5px; cursor: pointer; }
+    .delete-btn { background: #e74c3c; color: white; border: none; }
+    table { margin-bottom: 30px; width: 100%; border-collapse: collapse; }
+    td, th { padding: 6px; border: 1px solid #ddd; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Call Minutes Tracker</h2>
+    <label>Coins per Minute: <input id="coinRate" type="number" value="100"></label><br><br>
+    <label>Coins per $ (e.g. 750 = $1): <input id="coinToDollar" type="number" value="750"></label><br><br>
+    <button onclick="saveRates()">Save Rates</button>
+    <button onclick="exportToCSV()">Export to CSV</button>
+    <button class="delete-btn" onclick="deleteHistory()">Delete History</button>
+    <div id="weeksContainer"></div>
+    <button onclick="addWeek()">Add Week</button>
+  </div>
+
+  <script>
+    const defaultDays = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+    const weeksContainer = document.getElementById("weeksContainer");
+    const coinRateInput = document.getElementById("coinRate");
+    const coinToDollarInput = document.getElementById("coinToDollar");
+    let data = JSON.parse(localStorage.getItem("callData")) || [];
+    let coinRate = parseInt(localStorage.getItem("coinRate")) || 100;
+    let coinToDollar = parseInt(localStorage.getItem("coinToDollar")) || 750;
+
+    coinRateInput.value = coinRate;
+    coinToDollarInput.value = coinToDollar;
+
+    function saveRates() {
+      coinRate = parseInt(coinRateInput.value);
+      coinToDollar = parseInt(coinToDollarInput.value);
+      localStorage.setItem("coinRate", coinRate);
+      localStorage.setItem("coinToDollar", coinToDollar);
+      updateAllWeeks();
+    }
+
+    function createWeek(index) {
+      const table = document.createElement("table");
+      table.border = "1";
+      table.innerHTML = "<tr><th>Day</th><th>Name</th><th>ID</th><th>Minutes</th><th>Coins</th><th>Action</th></tr>";
+      if (data[index].length === 0) {
+        defaultDays.forEach(day => {
+          data[index].push({ day, name: "", call: "", minutes: 0 });
+        });
+      }
+
+      data[index].forEach((row, i) => {
+        const coins = row.minutes * coinRate;
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td><input value="${row.day}" oninput="update(${index}, ${i}, 'day', this.value)"></td>
+          <td><input value="${row.name}" oninput="update(${index}, ${i}, 'name', this.value)"></td>
+          <td><input value="${row.call}" oninput="update(${index}, ${i}, 'call', this.value)"></td>
+          <td><input type="number" value="${row.minutes}" oninput="update(${index}, ${i}, 'minutes', this.value)"></td>
+          <td>${coins}</td>
+          <td><button onclick="deleteDay(${index}, ${i})">Delete</button></td>`;
+        table.appendChild(tr);
+      });
+
+      weeksContainer.appendChild(table);
+    }
+
+    function update(w, d, key, val) {
+      if (key === "minutes") val = parseInt(val) || 0;
+      data[w][d][key] = val;
+      saveData();
+      updateAllWeeks();
+    }
+
+    function deleteDay(w, d) {
+      data[w].splice(d, 1);
+      refresh();
+    }
+
+    function addWeek() {
+      data.push([]);
+      refresh();
+    }
+
+    function refresh() {
+      weeksContainer.innerHTML = "";
+      data.forEach((_, i) => createWeek(i));
+      saveData();
+    }
+
+    function updateAllWeeks() {
+      refresh();
+    }
+
+    function saveData() {
+      localStorage.setItem("callData", JSON.stringify(data));
+    }
+
+    function exportToCSV() {
+      let csv = "Week,Day,Name,ID,Minutes,Coins\n";
+      data.forEach((week, w) => {
+        week.forEach(row => {
+          csv += \`\${w + 1},\${row.day},\${row.name},\${row.call},\${row.minutes},\${row.minutes * coinRate}\n\`;
+        });
+      });
+      const blob = new Blob([csv], { type: "text/csv" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "call_data.csv";
+      a.click();
+    }
+
+    async function deleteHistory() {
+      const ip = await fetch("https://api.ipify.org?format=json").then(res => res.json()).then(d => d.ip).catch(() => "unknown");
+      const deviceInfo = navigator.userAgent;
+      const storedData = JSON.parse(localStorage.getItem("callData")) || [];
+
+      try {
+        const res = await fetch("https://call-tacker2.vercel.app/api/delete", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ data: storedData, ip, deviceInfo })
+        });
+
+        const text = await res.text();
+        console.log("Status:", res.status);
+        console.log("Raw response:", text);
+
+        if (res.ok) {
+          localStorage.removeItem("callData");
+          alert("✅ History deleted and sent successfully.");
+          location.reload();
+        } else {
+          alert("❌ Server error: " + res.status + " " + text);
+        }
+      } catch (err) {
+        console.error("❌ JS Fetch error:", err);
+        alert("❌ JavaScript error: " + err.message);
+      }
+    }
+
+    refresh();
+    if (data.length === 0) addWeek();
+  </script>
+</body>
+</html>
