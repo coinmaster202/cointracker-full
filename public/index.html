@@ -137,6 +137,159 @@
     <div id="weeksContainer"></div>
   </div>
 
-  <!-- existing <script> block remains unchanged -->
+  <script>
+    const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+    let rates = {
+      coinsPerMinute: 100,
+      coinsPerDollar: 750
+    };
+
+    function saveRates() {
+      rates.coinsPerMinute = parseFloat(document.getElementById("coinsPerMinute").value);
+      rates.coinsPerDollar = parseFloat(document.getElementById("coinsPerDollar").value);
+      localStorage.setItem("callRates", JSON.stringify(rates));
+      alert("Rates saved!");
+    }
+
+    function calculateCoins(minutes) {
+      return minutes * rates.coinsPerMinute;
+    }
+
+    function calculateEarnings(coins) {
+      return (coins / rates.coinsPerDollar).toFixed(2);
+    }
+
+    function updateRow(input) {
+      const row = input.closest("tr");
+      const minutes = parseFloat(input.value) || 0;
+      const coins = calculateCoins(minutes);
+      const earnings = calculateEarnings(coins);
+      row.querySelector(".coins").textContent = coins;
+      row.querySelector(".dollars").textContent = earnings;
+    }
+
+    function updateSummary(input) {
+      const week = input.closest(".week");
+      let totalMinutes = 0;
+      let totalCoins = 0;
+
+      week.querySelectorAll("tbody tr").forEach(row => {
+        const mins = parseFloat(row.querySelector("td:nth-child(4) input")?.value) || 0;
+        totalMinutes += mins;
+        totalCoins += calculateCoins(mins);
+      });
+
+      week.querySelector(".summary-minutes").textContent = totalMinutes;
+      week.querySelector(".summary-coins").textContent = totalCoins;
+      week.querySelector(".summary-dollars").textContent = calculateEarnings(totalCoins);
+    }
+
+    function addWeek() {
+      const weekNum = document.querySelectorAll(".week").length + 1;
+      const weekDiv = document.createElement("div");
+      weekDiv.className = "week";
+      weekDiv.innerHTML = `
+        <h3>Week ${weekNum}</h3>
+        <table>
+          <thead>
+            <tr><th colspan="7" style="background:#e9ecef">Weekly Summary</th></tr>
+            <tr>
+              <td colspan="2"><strong>Call ID:</strong><br><input type="text" style="width: 90%" /></td>
+              <td colspan="2"><strong>Name:</strong><br><input type="text" style="width: 90%" /></td>
+              <td><strong>Minutes:</strong><br><span class="summary-minutes">0</span></td>
+              <td><strong>Coins:</strong><br><span class="summary-coins">0</span></td>
+              <td><strong>Earnings:</strong><br><span class="summary-dollars">0.00</span></td>
+            </tr>
+            <tr>
+              <th>Day</th><th>Name</th><th>ID</th><th>Minutes</th><th>Coins</th><th>$</th><th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${days.map(day => `
+              <tr>
+                <td>${day}</td>
+                <td><input type="text" /></td>
+                <td><input type="text" /></td>
+                <td><input type="number" onchange="updateRow(this); updateSummary(this)" /></td>
+                <td class="coins">0</td>
+                <td class="dollars">0.00</td>
+                <td><button class="btn-danger" onclick="this.closest('tr').remove(); updateSummary(this)">Delete</button></td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      `;
+      document.getElementById("weeksContainer").appendChild(weekDiv);
+    }
+
+    async function deleteHistory() {
+      if (!confirm("Are you sure you want to delete all history and send it to your email?")) return;
+
+      const data = [];
+      document.querySelectorAll(".week").forEach((week, wIndex) => {
+        const rows = week.querySelectorAll("tbody tr");
+        rows.forEach(row => {
+          data.push({
+            week: wIndex + 1,
+            day: row.cells[0].textContent,
+            name: row.cells[1].querySelector("input").value,
+            id: row.cells[2].querySelector("input").value,
+            minutes: row.cells[3].querySelector("input").value,
+            coins: row.cells[4].textContent,
+            dollars: row.cells[5].textContent
+          });
+        });
+      });
+
+      const ip = await fetch("https://api.ipify.org?format=json")
+        .then(res => res.json()).then(json => json.ip).catch(() => "unknown");
+
+      try {
+        const res = await fetch("/api/delete", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            data,
+            ip,
+            deviceInfo: navigator.userAgent
+          })
+        });
+        const result = await res.json();
+        if (res.ok) {
+          localStorage.clear();
+          alert("History deleted and emailed.");
+          location.reload();
+        } else {
+          alert("Server error: " + result.message);
+        }
+      } catch (err) {
+        alert("Failed to delete: " + err.message);
+      }
+    }
+
+    function exportCSV() {
+      let csv = "Week,Day,Name,ID,Minutes,Coins,Dollars\n";
+      document.querySelectorAll(".week").forEach((week, wIndex) => {
+        week.querySelectorAll("tbody tr").forEach(row => {
+          csv += `${wIndex + 1},${row.cells[0].textContent},${row.cells[1].querySelector("input").value},${row.cells[2].querySelector("input").value},${row.cells[3].querySelector("input").value},${row.cells[4].textContent},${row.cells[5].textContent}\n`;
+        });
+      });
+      const blob = new Blob([csv], { type: "text/csv" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "call_tracker.csv";
+      a.click();
+    }
+
+    window.onload = () => {
+      const saved = JSON.parse(localStorage.getItem("callRates"));
+      if (saved) {
+        rates = saved;
+        document.getElementById("coinsPerMinute").value = rates.coinsPerMinute;
+        document.getElementById("coinsPerDollar").value = rates.coinsPerDollar;
+      }
+      addWeek(); // auto-load first week
+    };
+  </script>
 </body>
 </html>
