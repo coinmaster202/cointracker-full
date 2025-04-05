@@ -1,4 +1,5 @@
 const { Resend } = require('resend');
+
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 module.exports = async (req, res) => {
@@ -25,7 +26,7 @@ module.exports = async (req, res) => {
 
     return res.status(200).json({ message: 'History deleted successfully!' });
   } catch (error) {
-    console.error('Error sending email:', error);
+    console.error('Resend error:', error);
     return res.status(500).json({ message: 'Failed to delete history', error: error.message });
   }
 };
