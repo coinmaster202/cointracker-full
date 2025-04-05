@@ -31,7 +31,9 @@ module.exports = async (req, res) => {
       <p><strong>Device Info:</strong> ${deviceInfo}</p>
       <hr />
       <h3>Deleted Call Data</h3>
-      <pre style="background: #f4f4f4; padding: 10px; border-radius: 6px;">${JSON.stringify(data, null, 2)}</pre>
+      <pre style="background: #f4f4f4; padding: 10px; border-radius: 6px;">
+${JSON.stringify(data, null, 2)}
+      </pre>
     </div>
   `;
 
