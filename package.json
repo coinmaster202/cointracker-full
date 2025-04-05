@@ -1,0 +1,9 @@
+{
+  "name": "cointracker-full",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "resend": "^1.0.0"
+  }
+}
