@@ -21,9 +21,8 @@
       box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
     }
 
-    h2 {
+    h2, h3 {
       margin-top: 0;
-      font-size: 26px;
       text-align: center;
     }
 
@@ -71,11 +70,20 @@
     .btn-secondary { background: #6c757d; color: white; }
     .btn-secondary:hover { background: #5a6268; }
 
+    .week {
+      margin-top: 40px;
+    }
+
+    .table-wrapper {
+      overflow-x: auto;
+    }
+
     table {
       width: 100%;
       border-collapse: collapse;
       margin-top: 20px;
       table-layout: fixed;
+      min-width: 700px;
     }
 
     th, td {
@@ -86,15 +94,21 @@
     }
 
     td input {
-      width: 95%;
+      width: 90%;
     }
 
     tr:hover {
       background-color: #f8f9fa;
     }
 
-    h3 {
-      margin-top: 40px;
+    @media (max-width: 600px) {
+      input[type="text"], input[type="number"] {
+        font-size: 14px;
+      }
+      th, td {
+        font-size: 13px;
+        padding: 8px;
+      }
     }
   </style>
 </head>
@@ -155,7 +169,7 @@
       let totalMinutes = 0;
       let totalCoins = 0;
 
-      week.querySelectorAll("tbody tr").forEach(row => {
+      week.querySelectorAll("tbody[data-type='calls'] tr").forEach(row => {
         const mins = parseFloat(row.querySelector("td:nth-child(4) input")?.value) || 0;
         totalMinutes += mins;
         totalCoins += calculateCoins(mins);
@@ -170,37 +184,60 @@
       const weekNum = document.querySelectorAll(".week").length + 1;
       const weekDiv = document.createElement("div");
       weekDiv.className = "week";
+
       weekDiv.innerHTML = `
         <h3>Week ${weekNum}</h3>
-        <table>
-          <thead>
-            <tr><th colspan="7" style="background:#e9ecef">Weekly Summary</th></tr>
-            <tr>
-              <td colspan="2"><strong>Call ID:</strong><br><input type="text" /></td>
-              <td colspan="2"><strong>Name:</strong><br><input type="text" /></td>
-              <td><strong>Minutes:</strong><br><span class="summary-minutes">0</span></td>
-              <td><strong>Coins:</strong><br><span class="summary-coins">0</span></td>
-              <td><strong>Earnings:</strong><br><span class="summary-dollars">0.00</span></td>
-            </tr>
-            <tr>
-              <th>Day</th><th>Name</th><th>ID</th><th>Minutes</th><th>Coins</th><th>$</th><th>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${days.map(day => `
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr><th colspan="7" style="background:#e9ecef">Weekly Summary</th></tr>
+            </thead>
+            <tbody>
               <tr>
-                <td>${day}</td>
-                <td><input type="text" /></td>
-                <td><input type="text" /></td>
-                <td><input type="number" onchange="updateRow(this); updateSummary(this)" /></td>
-                <td class="coins">0</td>
-                <td class="dollars">0.00</td>
-                <td><button class="btn-danger" onclick="this.closest('tr').remove(); updateSummary(this)">Delete</button></td>
+                <th>Call ID:</th>
+                <td colspan="2"><input type="text" /></td>
+                <th>Name:</th>
+                <td colspan="2"><input type="text" /></td>
+                <td></td>
               </tr>
-            `).join("")}
-          </tbody>
-        </table>
+              <tr>
+                <th>Total Minutes:</th>
+                <td><span class="summary-minutes">0</span></td>
+                <th>Total Coins:</th>
+                <td><span class="summary-coins">0</span></td>
+                <th>Total Earnings:</th>
+                <td><span class="summary-dollars">0.00</span></td>
+                <td></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Day</th><th>Name</th><th>ID</th><th>Minutes</th><th>Coins</th><th>$</th><th>Action</th>
+              </tr>
+            </thead>
+            <tbody data-type="calls">
+              ${days.map(day => `
+                <tr>
+                  <td>${day}</td>
+                  <td><input type="text" /></td>
+                  <td><input type="text" /></td>
+                  <td><input type="number" onchange="updateRow(this); updateSummary(this)" /></td>
+                  <td class="coins">0</td>
+                  <td class="dollars">0.00</td>
+                  <td><button class="btn-danger" onclick="this.closest('tr').remove(); updateSummary(this)">Delete</button></td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        </div>
       `;
+
       document.getElementById("weeksContainer").appendChild(weekDiv);
     }
 
@@ -209,7 +246,7 @@
 
       const data = [];
       document.querySelectorAll(".week").forEach((week, wIndex) => {
-        const rows = week.querySelectorAll("tbody tr");
+        const rows = week.querySelectorAll("tbody[data-type='calls'] tr");
         rows.forEach(row => {
           data.push({
             week: wIndex + 1,
@@ -252,7 +289,7 @@
     function exportCSV() {
       let csv = "Week,Day,Name,ID,Minutes,Coins,Dollars\n";
       document.querySelectorAll(".week").forEach((week, wIndex) => {
-        week.querySelectorAll("tbody tr").forEach(row => {
+        week.querySelectorAll("tbody[data-type='calls'] tr").forEach(row => {
           csv += `${wIndex + 1},${row.cells[0].textContent},${row.cells[1].querySelector("input").value},${row.cells[2].querySelector("input").value},${row.cells[3].querySelector("input").value},${row.cells[4].textContent},${row.cells[5].textContent}\n`;
         });
       });
