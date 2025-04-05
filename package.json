@@ -1,9 +1,0 @@
-{
-  "name": "cointracker-full",
-  "version": "1.0.0",
-  "main": "api/delete.js",
-  "type": "commonjs",
-  "dependencies": {
-    "resend": "^0.20.0"
-  }
-}
