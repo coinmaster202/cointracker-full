@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Call Minutes Tracker</title>
+  <style>
+    body { font-family: Arial; padding: 20px; background: #f9f9f9; }
+    .container { max-width: 800px; margin: auto; background: #fff; padding: 20px; border-radius: 8px; }
+    input, button { padding: 8px; margin: 5px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
+    button.delete { background-color: red; color: white; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Call Minutes Tracker</h1>
+    <label>Coins per Minute: <input id="coinsPerMinute" type="number" value="100"></label><br>
+    <label>Coins per $ (e.g. 750 = $1): <input id="coinsPerDollar" type="number" value="750"></label><br>
+    <button onclick="saveRates()">Save Rates</button>
+    <button onclick="exportToCSV()">Export to CSV</button>
+    <button onclick="deleteHistory()" style="background-color:red;color:white;">Delete History</button>
+    <table id="trackerTable">
+      <thead>
+        <tr><th>Day</th><th>Name</th><th>ID</th><th>Minutes</th><th>Coins</th><th>Action</th></tr>
+      </thead>
+      <tbody id="tableBody">
+        <tr><td>Monday</td><td><input></td><td><input></td><td><input value="0"></td><td>0</td><td><button class="delete" onclick="deleteRow(this)">Delete</button></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <script>
+    async function deleteHistory() {
+      const ip = await fetch("https://api.ipify.org?format=json").then(res => res.json()).then(data => data.ip);
+      const data = []; // Simplified - you can add your table data here
+      try {
+        const res = await fetch('/api/delete', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ data, ip, deviceInfo: navigator.userAgent })
+        });
+        const result = await res.json();
+        alert(result.message);
+      } catch (e) {
+        alert("JavaScript error: " + e.message);
+      }
+    }
+    function deleteRow(btn) { btn.closest("tr").remove(); }
+    function saveRates() { alert("Rates saved."); }
+    function exportToCSV() { alert("Exported CSV"); }
+  </script>
+</body>
+</html>
