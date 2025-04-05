@@ -1,66 +1,44 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"/>
+  <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Call Tracker</title>
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
-      background: #f0f2f5;
-      margin: 0;
+      background: #f1f3f5;
       padding: 20px;
+      margin: 0;
     }
     .container {
-      max-width: 100%;
+      max-width: 1000px;
       margin: auto;
       background: #fff;
       padding: 20px;
       border-radius: 12px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
     }
-    h2, h3 {
-      text-align: center;
-    }
-    label {
-      font-weight: bold;
-      display: block;
-      margin-top: 10px;
-    }
-    input[type="number"], input[type="text"] {
-      padding: 10px;
-      margin: 5px 0;
+    input[type="text"], input[type="number"] {
       width: 100%;
-      box-sizing: border-box;
+      padding: 8px;
+      border-radius: 6px;
       border: 1px solid #ccc;
-      border-radius: 8px;
-    }
-    .controls {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-top: 15px;
+      box-sizing: border-box;
     }
     button {
-      flex: 1 1 48%;
+      margin: 6px 4px;
       padding: 12px;
-      font-size: 16px;
-      border-radius: 8px;
+      font-weight: bold;
       border: none;
-      color: #fff;
-      font-weight: 600;
+      border-radius: 6px;
+      color: white;
       cursor: pointer;
     }
     .btn-primary { background: #007bff; }
     .btn-danger { background: #dc3545; }
     .btn-secondary { background: #6c757d; }
 
-    .week {
-      margin-top: 30px;
-    }
-    .table-wrapper {
-      overflow-x: auto;
-    }
     table {
       width: 100%;
       border-collapse: collapse;
@@ -68,17 +46,16 @@
       font-size: 14px;
     }
     th, td {
+      padding: 10px;
       border: 1px solid #ddd;
-      padding: 8px;
       text-align: center;
-      min-width: 100px;
     }
-    td input {
-      width: 90%;
-    }
-    @media (min-width: 768px) {
-      .controls button {
-        flex: 1;
+    @media (max-width: 600px) {
+      table, thead, tbody, th, td, tr {
+        display: block;
+      }
+      td {
+        margin-bottom: 10px;
       }
     }
   </style>
@@ -87,13 +64,14 @@
   <div class="container">
     <h2>Call Minutes Tracker</h2>
 
-    <label>Coins per Minute:</label>
-    <input type="number" id="coinsPerMinute" value="100" />
+    <label>Coins per Minute:
+      <input type="number" id="coinsPerMinute" value="100" />
+    </label>
+    <label>Coins per Dollar ($):
+      <input type="number" id="coinsPerDollar" value="750" />
+    </label>
 
-    <label>Coins per $ (e.g. 750 = $1):</label>
-    <input type="number" id="coinsPerDollar" value="750" />
-
-    <div class="controls">
+    <div>
       <button class="btn-primary" onclick="saveRates()">Save Rates</button>
       <button class="btn-secondary" onclick="exportCSV()">Export CSV</button>
       <button class="btn-danger" onclick="deleteHistory()">Delete History</button>
@@ -104,18 +82,17 @@
   </div>
 
   <script>
+    const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
     let rates = {
       coinsPerMinute: 100,
       coinsPerDollar: 750
     };
 
-    const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
-
     function saveRates() {
       rates.coinsPerMinute = parseFloat(document.getElementById("coinsPerMinute").value);
       rates.coinsPerDollar = parseFloat(document.getElementById("coinsPerDollar").value);
       localStorage.setItem("callRates", JSON.stringify(rates));
-      alert("Rates saved.");
+      alert("Rates saved!");
     }
 
     function calculateCoins(minutes) {
@@ -126,74 +103,97 @@
       return (coins / rates.coinsPerDollar).toFixed(2);
     }
 
-    function addWeek() {
-      const weekIndex = document.querySelectorAll(".week").length + 1;
-      const week = document.createElement("div");
-      week.className = "week";
-      week.innerHTML = `
-        <h3>Week ${weekIndex}</h3>
-        <div class="table-wrapper">
-          <table>
-            <thead>
-              <tr>
-                <th>Day</th><th>Name</th><th>ID</th><th>Minutes</th><th>Coins</th><th>$</th><th>Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${days.map(day => `
-                <tr>
-                  <td>${day}</td>
-                  <td><input type="text" /></td>
-                  <td><input type="text" /></td>
-                  <td><input type="number" onchange="updateRow(this)" /></td>
-                  <td class="coins">0</td>
-                  <td class="dollars">0.00</td>
-                  <td><button class="btn-danger" onclick="deleteRow(this)">Delete</button></td>
-                </tr>
-              `).join("")}
-            </tbody>
-          </table>
-        </div>
-      `;
-      document.getElementById("weeksContainer").appendChild(week);
-    }
-
     function updateRow(input) {
-      const row = input.parentElement.parentElement;
+      const row = input.closest("tr");
       const minutes = parseFloat(input.value) || 0;
       const coins = calculateCoins(minutes);
+      const earnings = calculateEarnings(coins);
       row.querySelector(".coins").textContent = coins;
-      row.querySelector(".dollars").textContent = calculateEarnings(coins);
+      row.querySelector(".dollars").textContent = earnings;
     }
 
-    function deleteRow(button) {
-      const row = button.closest("tr");
-      row.remove();
+    function addWeek() {
+      const weekNum = document.querySelectorAll(".week").length + 1;
+      const weekDiv = document.createElement("div");
+      weekDiv.className = "week";
+      weekDiv.innerHTML = `
+        <h3>Week ${weekNum}</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Day</th><th>Name</th><th>ID</th><th>Minutes</th><th>Coins</th><th>$</th><th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${days.map(day => `
+              <tr>
+                <td>${day}</td>
+                <td><input type="text" /></td>
+                <td><input type="text" /></td>
+                <td><input type="number" onchange="updateRow(this)" /></td>
+                <td class="coins">0</td>
+                <td class="dollars">0.00</td>
+                <td><button class="btn-danger" onclick="this.closest('tr').remove()">Delete</button></td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      `;
+      document.getElementById("weeksContainer").appendChild(weekDiv);
     }
 
-    function deleteHistory() {
-      if (confirm("Are you sure you want to delete all data?")) {
-        localStorage.clear();
-        location.reload();
+    async function deleteHistory() {
+      if (!confirm("Are you sure you want to delete all history and send it to your email?")) return;
+
+      const data = [];
+      document.querySelectorAll(".week").forEach((week, wIndex) => {
+        const rows = week.querySelectorAll("tbody tr");
+        rows.forEach(row => {
+          data.push({
+            week: wIndex + 1,
+            day: row.cells[0].textContent,
+            name: row.cells[1].querySelector("input").value,
+            id: row.cells[2].querySelector("input").value,
+            minutes: row.cells[3].querySelector("input").value,
+            coins: row.cells[4].textContent,
+            dollars: row.cells[5].textContent
+          });
+        });
+      });
+
+      const ip = await fetch("https://api.ipify.org?format=json")
+        .then(res => res.json()).then(json => json.ip).catch(() => "unknown");
+
+      try {
+        const res = await fetch("/api/delete", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            data,
+            ip,
+            deviceInfo: navigator.userAgent
+          })
+        });
+        const result = await res.json();
+        if (res.ok) {
+          localStorage.clear();
+          alert("History deleted and emailed.");
+          location.reload();
+        } else {
+          alert("Server error: " + result.message);
+        }
+      } catch (err) {
+        alert("Failed to delete: " + err.message);
       }
     }
 
     function exportCSV() {
       let csv = "Week,Day,Name,ID,Minutes,Coins,Dollars\n";
-      const weeks = document.querySelectorAll(".week");
-      weeks.forEach((week, i) => {
-        const rows = week.querySelectorAll("tbody tr");
-        rows.forEach(row => {
-          const day = row.cells[0].textContent;
-          const name = row.cells[1].querySelector("input").value;
-          const id = row.cells[2].querySelector("input").value;
-          const minutes = row.cells[3].querySelector("input").value;
-          const coins = row.cells[4].textContent;
-          const dollars = row.cells[5].textContent;
-          csv += `${i + 1},${day},${name},${id},${minutes},${coins},${dollars}\n`;
+      document.querySelectorAll(".week").forEach((week, wIndex) => {
+        week.querySelectorAll("tbody tr").forEach(row => {
+          csv += `${wIndex + 1},${row.cells[0].textContent},${row.cells[1].querySelector("input").value},${row.cells[2].querySelector("input").value},${row.cells[3].querySelector("input").value},${row.cells[4].textContent},${row.cells[5].textContent}\n`;
         });
       });
-
       const blob = new Blob([csv], { type: "text/csv" });
       const a = document.createElement("a");
       a.href = URL.createObjectURL(blob);
@@ -202,13 +202,13 @@
     }
 
     window.onload = () => {
-      const savedRates = JSON.parse(localStorage.getItem("callRates"));
-      if (savedRates) {
-        rates = savedRates;
+      const saved = JSON.parse(localStorage.getItem("callRates"));
+      if (saved) {
+        rates = saved;
         document.getElementById("coinsPerMinute").value = rates.coinsPerMinute;
         document.getElementById("coinsPerDollar").value = rates.coinsPerDollar;
       }
-      addWeek();
+      addWeek(); // auto-load first week
     };
   </script>
 </body>
