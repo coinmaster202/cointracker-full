@@ -6,13 +6,22 @@ module.exports = async (req, res) => {
     return res.status(405).json({ message: 'Method Not Allowed' });
   }
 
-  const { data = [], ip = 'unknown', deviceInfo = 'unknown' } = req.body;
+  const {
+    data = [],
+    ip = 'unknown',
+    deviceInfo = 'unknown',
+    hostName = 'Unknown'
+  } = req.body;
 
   const html = `
-    <p><strong>Call Tracker History Deleted</strong></p>
+    <h2>Call Tracker History Deleted</h2>
+    <p><strong>Host Name:</strong> ${hostName}</p>
     <p><strong>IP:</strong> ${ip}</p>
     <p><strong>Device:</strong> ${deviceInfo}</p>
-    <pre>${JSON.stringify(data, null, 2)}</pre>
+    <hr>
+    <pre style="font-size: 14px; background: #f4f4f4; padding: 10px; border-radius: 8px;">
+${JSON.stringify(data, null, 2)}
+    </pre>
   `;
 
   try {
@@ -22,6 +31,7 @@ module.exports = async (req, res) => {
       subject: 'Deleted History Report',
       html
     });
+
     return res.status(200).json({ message: 'History deleted successfully!' });
   } catch (error) {
     console.error('Error sending email:', error);
