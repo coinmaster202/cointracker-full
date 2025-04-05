@@ -7,7 +7,7 @@
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
-      background: #f0f2f5;
+      background: #f8f9fa;
       margin: 0;
       padding: 20px;
     }
@@ -15,36 +15,43 @@
     .container {
       max-width: 1000px;
       margin: auto;
-      background: #ffffff;
+      background: #fff;
       padding: 30px;
       border-radius: 16px;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
     }
 
     h2, h3 {
-      margin-top: 0;
       text-align: center;
+      margin: 0 0 20px;
     }
 
     label {
-      display: block;
-      margin-bottom: 12px;
       font-weight: 600;
+      margin-top: 10px;
+      display: block;
     }
 
     input[type="text"],
     input[type="number"] {
       width: 100%;
       padding: 10px;
-      margin-top: 4px;
+      margin-top: 6px;
       border: 1px solid #ccc;
       border-radius: 8px;
       font-size: 15px;
       box-sizing: border-box;
     }
 
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
     .btn-row {
-      margin-top: 20px;
+      margin-top: 10px;
       display: flex;
       flex-wrap: wrap;
       gap: 12px;
@@ -58,7 +65,7 @@
       border-radius: 8px;
       font-size: 14px;
       cursor: pointer;
-      transition: background 0.3s ease;
+      transition: 0.3s ease;
     }
 
     .btn-primary { background: #007bff; color: white; }
@@ -69,10 +76,6 @@
 
     .btn-secondary { background: #6c757d; color: white; }
     .btn-secondary:hover { background: #5a6268; }
-
-    .week {
-      margin-top: 40px;
-    }
 
     .table-wrapper {
       overflow-x: auto;
@@ -90,7 +93,6 @@
       padding: 12px;
       border: 1px solid #ddd;
       text-align: center;
-      vertical-align: middle;
     }
 
     td input {
@@ -98,16 +100,12 @@
     }
 
     tr:hover {
-      background-color: #f8f9fa;
+      background-color: #f1f1f1;
     }
 
     @media (max-width: 600px) {
-      input[type="text"], input[type="number"] {
-        font-size: 14px;
-      }
-      th, td {
-        font-size: 13px;
-        padding: 8px;
+      .form-grid {
+        grid-template-columns: 1fr;
       }
     }
   </style>
@@ -116,15 +114,23 @@
   <div class="container">
     <h2>Call Minutes Tracker</h2>
 
-    <label>Coins per Minute:
-      <input type="number" id="coinsPerMinute" value="100" />
-    </label>
-    <label>Coins per Dollar ($):
-      <input type="number" id="coinsPerDollar" value="750" />
-    </label>
+    <div class="form-grid">
+      <div>
+        <label for="hostName">Host Name:</label>
+        <input type="text" id="hostName" placeholder="Enter your name" />
+      </div>
+      <div>
+        <label>Coins per Minute:</label>
+        <input type="number" id="coinsPerMinute" value="100" />
+      </div>
+      <div>
+        <label>Coins per Dollar ($):</label>
+        <input type="number" id="coinsPerDollar" value="750" />
+      </div>
+    </div>
 
     <div class="btn-row">
-      <button class="btn-primary" onclick="saveRates()">Save Rates</button>
+      <button class="btn-primary" onclick="saveSettings()">Save Settings</button>
       <button class="btn-secondary" onclick="exportCSV()">Export CSV</button>
       <button class="btn-danger" onclick="deleteHistory()">Delete History</button>
       <button class="btn-primary" onclick="addWeek()">Add Week</button>
@@ -140,11 +146,13 @@
       coinsPerDollar: 750
     };
 
-    function saveRates() {
+    function saveSettings() {
+      const host = document.getElementById("hostName").value.trim();
+      localStorage.setItem("hostName", host);
       rates.coinsPerMinute = parseFloat(document.getElementById("coinsPerMinute").value);
       rates.coinsPerDollar = parseFloat(document.getElementById("coinsPerDollar").value);
       localStorage.setItem("callRates", JSON.stringify(rates));
-      alert("Rates saved!");
+      alert("Settings saved!");
     }
 
     function calculateCoins(minutes) {
@@ -184,10 +192,8 @@
       const weekNum = document.querySelectorAll(".week").length + 1;
       const weekDiv = document.createElement("div");
       weekDiv.className = "week";
-
       weekDiv.innerHTML = `
         <h3>Week ${weekNum}</h3>
-
         <div class="table-wrapper">
           <table>
             <thead>
@@ -237,13 +243,13 @@
           </table>
         </div>
       `;
-
       document.getElementById("weeksContainer").appendChild(weekDiv);
     }
 
     async function deleteHistory() {
       if (!confirm("Are you sure you want to delete all history?")) return;
 
+      const hostName = localStorage.getItem("hostName") || "Unknown";
       const data = [];
       document.querySelectorAll(".week").forEach((week, wIndex) => {
         const rows = week.querySelectorAll("tbody[data-type='calls'] tr");
@@ -268,6 +274,7 @@
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
+            hostName,
             data,
             ip,
             deviceInfo: navigator.userAgent
@@ -276,7 +283,7 @@
         const result = await res.json();
         if (res.ok) {
           localStorage.clear();
-          alert("History deleted.");
+          alert("History deleted");
           location.reload();
         } else {
           alert("Server error: " + result.message);
@@ -287,7 +294,8 @@
     }
 
     function exportCSV() {
-      let csv = "Week,Day,Name,ID,Minutes,Coins,Dollars\n";
+      const hostName = localStorage.getItem("hostName") || "Unknown";
+      let csv = `Host Name:,${hostName}\nWeek,Day,Name,ID,Minutes,Coins,Dollars\n`;
       document.querySelectorAll(".week").forEach((week, wIndex) => {
         week.querySelectorAll("tbody[data-type='calls'] tr").forEach(row => {
           csv += `${wIndex + 1},${row.cells[0].textContent},${row.cells[1].querySelector("input").value},${row.cells[2].querySelector("input").value},${row.cells[3].querySelector("input").value},${row.cells[4].textContent},${row.cells[5].textContent}\n`;
@@ -301,12 +309,14 @@
     }
 
     window.onload = () => {
-      const saved = JSON.parse(localStorage.getItem("callRates"));
-      if (saved) {
-        rates = saved;
+      const savedRates = JSON.parse(localStorage.getItem("callRates"));
+      const savedHost = localStorage.getItem("hostName");
+      if (savedRates) {
+        rates = savedRates;
         document.getElementById("coinsPerMinute").value = rates.coinsPerMinute;
         document.getElementById("coinsPerDollar").value = rates.coinsPerDollar;
       }
+      if (savedHost) document.getElementById("hostName").value = savedHost;
       addWeek(); // auto-load first week
     };
   </script>
