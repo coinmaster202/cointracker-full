@@ -1,57 +1,56 @@
-const { Resend } = require('resend');
-const fetch = require('node-fetch'); // ensure you have node-fetch installed if not in edge function
+async function deleteHistory() {
+  if (!confirm("Are you sure you want to delete all history and send it to your email?")) return;
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+  const hostName = localStorage.getItem("hostName") || "Unknown";
+  const data = [];
+  document.querySelectorAll(".week").forEach((week, wIndex) => {
+    const rows = week.querySelectorAll("tbody[data-type='calls'] tr");
+    rows.forEach(row => {
+      data.push({
+        week: wIndex + 1,
+        day: row.cells[0].textContent,
+        name: row.cells[1].querySelector("input").value,
+        id: row.cells[2].querySelector("input").value,
+        minutes: row.cells[3].querySelector("input").value,
+        coins: row.cells[4].textContent,
+        dollars: row.cells[5].textContent
+      });
+    });
+  });
 
-module.exports = async (req, res) => {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ message: 'Method Not Allowed' });
-  }
-
-  const {
-    data = [],
-    ip: clientIp = 'unknown',
-    deviceInfo = 'unknown',
-    hostName = 'Unknown'
-  } = req.body;
-
-  // Extract IP from header if available (for more accuracy)
-  const serverIp = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket?.remoteAddress || clientIp;
-
-  // Fetch Geo Info
-  let geoInfo = {};
-  try {
-    const geoRes = await fetch(`https://ipapi.co/${serverIp}/json/`);
-    geoInfo = await geoRes.json();
-  } catch (err) {
-    geoInfo = { error: 'Geo lookup failed' };
-  }
-
-  const html = `
-    <h2>Call Tracker History Deleted</h2>
-    <p><strong>Host Name:</strong> ${hostName}</p>
-    <p><strong>IP (Client):</strong> ${clientIp}</p>
-    <p><strong>IP (Server-detected):</strong> ${serverIp}</p>
-    <p><strong>Device:</strong> ${deviceInfo}</p>
-    <p><strong>Location:</strong> ${geoInfo.city || 'Unknown'}, ${geoInfo.region || ''}, ${geoInfo.country_name || ''}</p>
-    <p><strong>Timezone:</strong> ${geoInfo.timezone || 'Unknown'}</p>
-    <hr>
-    <pre style="font-size: 14px; background: #f4f4f4; padding: 10px; border-radius: 8px;">
-${JSON.stringify(data, null, 2)}
-    </pre>
-  `;
+  const ip = await fetch("https://api.ipify.org?format=json")
+    .then(res => res.json())
+    .then(json => json.ip)
+    .catch(() => "unknown");
 
   try {
-    await resend.emails.send({
-      from: 'onboarding@resend.dev',
-      to: 'livuapp900@gmail.com',
-      subject: 'Deleted History Report',
-      html
+    const res = await fetch("/api/delete", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        hostName,
+        data,
+        ip,
+        deviceInfo: navigator.userAgent
+      })
     });
 
-    return res.status(200).json({ message: 'History deleted and emailed successfully!' });
-  } catch (error) {
-    console.error('Error sending email:', error);
-    return res.status(500).json({ message: 'Failed to send email', error: error.message });
+    let result;
+    try {
+      result = await res.json();
+    } catch {
+      const text = await res.text();
+      throw new Error(text);
+    }
+
+    if (res.ok) {
+      localStorage.clear();
+      alert("History deleted.");
+      location.reload();
+    } else {
+      alert("Server error: " + result.message);
+    }
+  } catch (err) {
+    alert("Failed to delete: " + err.message);
   }
-};
+}
