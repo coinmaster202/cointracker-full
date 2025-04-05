@@ -7,24 +7,20 @@
   <style>
     :root {
       --primary: #007bff;
-      --primary-dark: #0056b3;
       --danger: #dc3545;
-      --danger-dark: #a71d2a;
       --secondary: #6c757d;
-      --background: #f8f9fa;
+      --background: #f4f8fb;
       --surface: #ffffff;
       --text: #212529;
-      --shadow: rgba(0, 0, 0, 0.1);
+      --shadow: rgba(0, 0, 0, 0.08);
     }
 
-    * { box-sizing: border-box; }
-
     body {
-      margin: 0;
       font-family: 'Segoe UI', sans-serif;
       background: var(--background);
-      color: var(--text);
+      margin: 0;
       padding: 20px;
+      color: var(--text);
     }
 
     .container {
@@ -33,8 +29,8 @@
       background: var(--surface);
       padding: 30px;
       border-radius: 16px;
-      box-shadow: 0 10px 25px var(--shadow);
-      animation: fadeIn 0.5s ease-in-out;
+      box-shadow: 0 10px 30px var(--shadow);
+      animation: fadeIn 0.6s ease-in-out;
     }
 
     @keyframes fadeIn {
@@ -42,17 +38,8 @@
       to { opacity: 1; transform: translateY(0); }
     }
 
-    h2, h3 {
-      text-align: center;
-      margin-bottom: 20px;
-    }
-
-    label {
-      font-weight: 600;
-      display: block;
-      margin-top: 10px;
-    }
-
+    h2, h3 { text-align: center; margin-bottom: 20px; }
+    label { font-weight: 600; display: block; margin-top: 10px; }
     input[type="text"], input[type="number"] {
       width: 100%;
       padding: 10px;
@@ -70,11 +57,11 @@
     }
 
     .btn-row {
+      margin-top: 10px;
       display: flex;
       flex-wrap: wrap;
-      justify-content: center;
       gap: 12px;
-      margin: 20px 0;
+      justify-content: center;
     }
 
     button {
@@ -84,29 +71,17 @@
       border-radius: 8px;
       font-size: 14px;
       cursor: pointer;
-      transition: background 0.3s ease;
+      transition: 0.3s ease;
     }
 
-    .btn-primary {
-      background: var(--primary);
-      color: white;
-    }
-    .btn-primary:hover {
-      background: var(--primary-dark);
-    }
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-primary:hover { background: #0056b3; }
 
-    .btn-danger {
-      background: var(--danger);
-      color: white;
-    }
-    .btn-danger:hover {
-      background: var(--danger-dark);
-    }
+    .btn-danger { background: var(--danger); color: white; }
+    .btn-danger:hover { background: #a71d2a; }
 
-    .btn-secondary {
-      background: var(--secondary);
-      color: white;
-    }
+    .btn-secondary { background: var(--secondary); color: white; }
+    .btn-secondary:hover { background: #5a6268; }
 
     .table-wrapper {
       overflow-x: auto;
@@ -125,18 +100,12 @@
       text-align: center;
     }
 
-    tr:hover {
-      background-color: #f1f1f1;
-    }
+    td input { width: 90%; }
 
-    td input {
-      width: 90%;
-    }
+    tr:hover { background-color: #f1f1f1; }
 
     @media (max-width: 600px) {
-      .form-grid {
-        grid-template-columns: 1fr;
-      }
+      .form-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -171,10 +140,7 @@
 
   <script>
     const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
-    let rates = {
-      coinsPerMinute: 100,
-      coinsPerDollar: 750
-    };
+    let rates = { coinsPerMinute: 100, coinsPerDollar: 750 };
 
     function saveSettings() {
       const host = document.getElementById("hostName").value.trim();
@@ -185,21 +151,14 @@
       alert("Settings saved!");
     }
 
-    function calculateCoins(minutes) {
-      return minutes * rates.coinsPerMinute;
-    }
-
-    function calculateEarnings(coins) {
-      return (coins / rates.coinsPerDollar).toFixed(2);
-    }
+    function calculateCoins(minutes) { return minutes * rates.coinsPerMinute; }
+    function calculateEarnings(coins) { return (coins / rates.coinsPerDollar).toFixed(2); }
 
     function updateRow(input) {
       const row = input.closest("tr");
       const minutes = parseFloat(input.value) || 0;
-      const coins = calculateCoins(minutes);
-      const earnings = calculateEarnings(coins);
-      row.querySelector(".coins").textContent = coins;
-      row.querySelector(".dollars").textContent = earnings;
+      row.querySelector(".coins").textContent = calculateCoins(minutes);
+      row.querySelector(".dollars").textContent = calculateEarnings(calculateCoins(minutes));
     }
 
     function updateSummary(input) {
@@ -224,7 +183,7 @@
         <h3>Week ${weekNum}</h3>
         <div class="table-wrapper">
           <table>
-            <thead><tr><th colspan="7">Weekly Summary</th></tr></thead>
+            <thead><tr><th colspan="7" style="background:#e9ecef">Weekly Summary</th></tr></thead>
             <tbody>
               <tr><th>Call ID:</th><td colspan="2"><input type="text" /></td><th>Name:</th><td colspan="2"><input type="text" /></td><td></td></tr>
               <tr><th>Total Minutes:</th><td><span class="summary-minutes">0</span></td><th>Total Coins:</th><td><span class="summary-coins">0</span></td><th>Total Earnings:</th><td><span class="summary-dollars">0.00</span></td><td></td></tr>
@@ -233,9 +192,7 @@
         </div>
         <div class="table-wrapper">
           <table>
-            <thead>
-              <tr><th>Day</th><th>Name</th><th>ID</th><th>Minutes</th><th>Coins</th><th>$</th><th>Action</th></tr>
-            </thead>
+            <thead><tr><th>Day</th><th>Name</th><th>ID</th><th>Minutes</th><th>Coins</th><th>$</th><th>Action</th></tr></thead>
             <tbody data-type="calls">
               ${days.map(day => `
                 <tr>
@@ -275,7 +232,6 @@
       });
 
       let geo = {
-        ip: "unknown",
         ipv4: "unknown",
         city: "unknown",
         region: "unknown",
@@ -285,18 +241,17 @@
       };
 
       try {
-        const [json, ipv4] = await Promise.all([
-          fetch("https://ipapi.co/json/").then(res => res.json()),
-          fetch("https://ipapi.co/ip/").then(res => res.text())
+        const [ipapiData, ipify] = await Promise.all([
+          fetch("https://ipapi.co/json/").then(r => r.json()),
+          fetch("https://api.ipify.org?format=json").then(r => r.json())
         ]);
         geo = {
-          ip: json.ip || "unknown",
-          ipv4: ipv4 || "unknown",
-          city: json.city || "unknown",
-          region: json.region || "unknown",
-          country: json.country_name || "unknown",
-          timezone: json.timezone || "unknown",
-          localTime: new Date().toLocaleString("en-US", { timeZone: json.timezone })
+          ipv4: ipify.ip || "unknown",
+          city: ipapiData.city || "unknown",
+          region: ipapiData.region || "unknown",
+          country: ipapiData.country_name || "unknown",
+          timezone: ipapiData.timezone || "unknown",
+          localTime: new Date().toLocaleString("en-US", { timeZone: ipapiData.timezone })
         };
       } catch (err) {
         console.warn("Geo lookup failed:", err);
@@ -309,7 +264,6 @@
           body: JSON.stringify({
             hostName,
             data,
-            ip: geo.ip,
             ipv4: geo.ipv4,
             city: geo.city,
             region: geo.region,
@@ -357,7 +311,7 @@
         document.getElementById("coinsPerDollar").value = rates.coinsPerDollar;
       }
       if (savedHost) document.getElementById("hostName").value = savedHost;
-      addWeek();
+      addWeek(); // load first week
     };
   </script>
 </body>
