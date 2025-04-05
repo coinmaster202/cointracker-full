@@ -41,6 +41,7 @@
       border: 1px solid #ccc;
       border-radius: 8px;
       font-size: 15px;
+      box-sizing: border-box;
     }
 
     .btn-row {
@@ -70,48 +71,47 @@
     .btn-secondary { background: #6c757d; color: white; }
     .btn-secondary:hover { background: #5a6268; }
 
-    table {
+    .week table {
       width: 100%;
-      border-collapse: collapse;
       margin-top: 20px;
-      font-size: 14px;
+      border-collapse: collapse;
+      overflow-x: auto;
+      display: block;
     }
 
-    th {
-      background-color: #f8f9fa;
+    .week thead, .week tbody, .week tr {
+      display: table;
+      width: 100%;
+      table-layout: fixed;
     }
 
     th, td {
       padding: 12px;
       text-align: center;
-      border-bottom: 1px solid #ddd;
+      border: 1px solid #ddd;
+      white-space: nowrap;
     }
 
     tr:hover {
-      background-color: #f1f1f1;
+      background-color: #f8f9fa;
     }
 
     @media (max-width: 600px) {
-      table, thead, tbody, th, td, tr {
-        display: block;
+      .container {
+        padding: 16px;
       }
 
-      thead tr {
-        display: none;
+      button {
+        width: 100%;
       }
 
-      td {
-        position: relative;
-        padding-left: 50%;
-        margin-bottom: 12px;
+      .btn-row {
+        flex-direction: column;
+        gap: 8px;
       }
 
-      td::before {
-        content: attr(data-label);
-        position: absolute;
-        left: 12px;
-        font-weight: bold;
-        white-space: nowrap;
+      th, td {
+        font-size: 13px;
       }
     }
   </style>
@@ -223,7 +223,7 @@
     }
 
     async function deleteHistory() {
-      if (!confirm("Are you sure you want to delete all history and send it to your email?")) return;
+      if (!confirm("Are you sure you want to delete all history?")) return;
 
       const data = [];
       document.querySelectorAll(".week").forEach((week, wIndex) => {
@@ -257,7 +257,7 @@
         const result = await res.json();
         if (res.ok) {
           localStorage.clear();
-          alert("History deleted and emailed.");
+          alert("History deleted.");
           location.reload();
         } else {
           alert("Server error: " + result.message);
