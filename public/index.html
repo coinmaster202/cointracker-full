@@ -5,14 +5,14 @@
   <title>Call Tracker</title>
   <style>
     :root {
-      --primary: #4e8cff;
-      --danger: #ff6b6b;
+      --primary: #007bff;
+      --danger: #dc3545;
       --secondary: #6c757d;
-      --background: #f0f4f8;
+      --background: #f8f9fa;
       --surface: #ffffff;
       --text: #212529;
-      --shadow: rgba(0, 0, 0, 0.08);
-      --highlight: #e0edff;
+      --shadow: rgba(0, 0, 0, 0.1);
+      --highlight: #eaf2ff;
     }body {
   font-family: 'Segoe UI', sans-serif;
   background: var(--background);
@@ -72,7 +72,7 @@ input[type="text"], input[type="number"] {
 }
 
 button {
-  padding: 10px 18px;
+  padding: 12px 20px;
   font-weight: bold;
   border: none;
   border-radius: 8px;
@@ -86,14 +86,14 @@ button {
   color: white;
 }
 
-.btn-primary:hover { background: #356de6; }
+.btn-primary:hover { background: #0056b3; }
 
 .btn-danger {
   background: var(--danger);
   color: white;
 }
 
-.btn-danger:hover { background: #c94141; }
+.btn-danger:hover { background: #a71d2a; }
 
 .btn-secondary {
   background: var(--secondary);
@@ -103,81 +103,64 @@ button {
 .btn-secondary:hover { background: #5a6268; }
 
 .add-entry-btn {
-  margin: 8px 0;
-  font-size: 13px;
-  padding: 6px 14px;
-  background: #e2e6ea;
-  color: #333;
+  font-size: 12px;
+  padding: 6px 10px;
+  margin-bottom: 5px;
+  background: #d4e3ff;
   border-radius: 6px;
+  border: none;
 }
 
-.day-section {
-  border: 1px solid #dee2e6;
-  border-radius: 12px;
-  margin-bottom: 18px;
-  padding: 14px;
+table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 700px;
+  margin-top: 20px;
   background: var(--highlight);
+  border-radius: 8px;
+  overflow: hidden;
 }
 
-.entry-row {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr) auto;
-  gap: 10px;
-  align-items: center;
-  margin-bottom: 10px;
-  background: #fff;
-  padding: 10px;
-  border-radius: 10px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.06);
-}
-
-.entry-row input {
-  padding: 6px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-}
-
-.entry-row .coins, .entry-row .dollars {
-  padding: 6px 0;
+th, td {
+  padding: 12px;
+  border: 1px solid #ddd;
   text-align: center;
 }
 
-.week-wrapper {
-  margin-top: 30px;
-  padding-top: 20px;
-  border-top: 2px dashed #ccc;
-}
+td input { width: 90%; }
 
-@media (max-width: 700px) {
-  .entry-row {
-    grid-template-columns: 1fr 1fr;
-    grid-template-rows: auto auto auto;
-  }
+tr:hover { background-color: #f1f1f1; }
+
+.table-wrapper { overflow-x: auto; }
+
+@media (max-width: 600px) {
+  .form-grid { grid-template-columns: 1fr; }
 }
 
   </style>
 </head>
 <body>
   <div class="container">
-    <h2>Call Minutes Tracker</h2>
-    <div class="form-grid">
-      <div>
-        <label for="hostName">Host Name:</label>
-        <input type="text" id="hostName" placeholder="Enter your name" />
-      </div>
-      <div>
-        <label>Coins per Minute:</label>
-        <input type="number" id="coinsPerMinute" value="100" />
-      </div>
-      <div>
-        <label>Coins per Dollar ($):</label>
-        <input type="number" id="coinsPerDollar" value="750" />
-      </div>
-    </div><div class="btn-row">
+    <h2>Call Minutes Tracker</h2><div class="form-grid">
+  <div>
+    <label for="hostName">Host Name:</label>
+    <input type="text" id="hostName" placeholder="Enter your name" />
+  </div>
+  <div>
+    <label>Coins per Minute:</label>
+    <input type="number" id="coinsPerMinute" value="100" />
+  </div>
+  <div>
+    <label>Coins per Dollar ($):</label>
+    <input type="number" id="coinsPerDollar" value="750" />
+  </div>
+</div>
+
+<div class="btn-row">
   <button class="btn-primary" onclick="saveSettings()">Save Settings</button>
   <button class="btn-secondary" onclick="exportCSV()">Export CSV</button>
   <button class="btn-danger" onclick="deleteHistory()">Delete History</button>
-  <button class="btn-primary" onclick="addWeek()">Add New Week</button>
+  <button class="btn-primary" onclick="addWeek()">Add Week</button>
 </div>
 
 <div id="weeksContainer"></div>
@@ -204,90 +187,82 @@ button {
     }
 
     function updateRow(input) {
-      const row = input.closest(".entry-row");
-      const minutes = parseFloat(row.querySelector(".minutes").value) || 0;
-      const coins = calculateCoins(minutes);
-      row.querySelector(".coins").textContent = coins;
-      row.querySelector(".dollars").textContent = calculateEarnings(coins);
+      const row = input.closest("tr");
+      const minutes = parseFloat(input.value) || 0;
+      row.querySelector(".coins").textContent = calculateCoins(minutes);
+      row.querySelector(".dollars").textContent = calculateEarnings(calculateCoins(minutes));
+      updateSummary(input);
     }
 
-    function addEntry(dayContainer) {
-      const row = document.createElement("div");
-      row.className = "entry-row";
-      row.innerHTML = `
-        <input type="text" placeholder="Name" />
-        <input type="text" placeholder="ID" />
-        <input type="number" class="minutes" placeholder="Minutes" onchange="updateRow(this)" />
-        <div class="coins">0</div>
-        <div class="dollars">0.00</div>
-        <button class="btn-danger" onclick="this.parentElement.remove()">Delete</button>
-      `;
-      dayContainer.appendChild(row);
+    function updateSummary(input) {
+      const week = input.closest(".week");
+      let totalMinutes = 0;
+      let totalCoins = 0;
+      week.querySelectorAll("tbody[data-type='calls'] tr").forEach(row => {
+        const mins = parseFloat(row.querySelector("td:nth-child(4) input")?.value) || 0;
+        totalMinutes += mins;
+        totalCoins += calculateCoins(mins);
+      });
+      week.querySelector(".summary-minutes").textContent = totalMinutes;
+      week.querySelector(".summary-coins").textContent = totalCoins;
+      week.querySelector(".summary-dollars").textContent = calculateEarnings(totalCoins);
     }
 
     function addWeek() {
-      const weekIndex = document.querySelectorAll(".week-wrapper").length + 1;
-      const week = document.createElement("div");
-      week.className = "week-wrapper";
-      week.innerHTML = `<h3>Week ${weekIndex}</h3>`;
-      days.forEach(day => {
-        const section = document.createElement("div");
-        section.className = "day-section";
-        section.innerHTML = `
-          <h4>${day}</h4>
-          <button class="add-entry-btn" onclick="addEntry(this.parentElement)">+ Add Entry</button>
-        `;
-        addEntry(section); // Add one entry by default
-        week.appendChild(section);
-      });
-      document.getElementById("weeksContainer").appendChild(week);
+      const weekNum = document.querySelectorAll(".week").length + 1;
+      const weekDiv = document.createElement("div");
+      weekDiv.className = "week";
+      weekDiv.innerHTML = `
+        <h3>Week ${weekNum}</h3>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th colspan="7">Weekly Summary</th></tr></thead>
+            <tbody>
+              <tr><th>Call ID:</th><td colspan="2"><input type="text" /></td><th>Name:</th><td colspan="2"><input type="text" /></td><td></td></tr>
+              <tr><th>Total Minutes:</th><td><span class="summary-minutes">0</span></td><th>Total Coins:</th><td><span class="summary-coins">0</span></td><th>Total Earnings:</th><td><span class="summary-dollars">0.00</span></td><td></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>Day</th><th>Name</th><th>ID</th><th>Minutes</th><th>Coins</th><th>$</th><th>Action</th></tr></thead>
+            <tbody data-type="calls">
+              ${days.map(day => `
+                <tr>
+                  <td>${day}</td>
+                  <td><input type="text" /></td>
+                  <td><input type="text" /></td>
+                  <td><input type="number" onchange="updateRow(this)" /></td>
+                  <td class="coins">0</td>
+                  <td class="dollars">0.00</td>
+                  <td><button class="btn-danger" onclick="this.closest('tr').remove(); updateSummary(this)">Delete</button></td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        </div>
+      `;
+      document.getElementById("weeksContainer").appendChild(weekDiv);
     }
 
     async function deleteHistory() {
-      const confirmed = confirm("Are you sure you want to delete all call data?");
+      const confirmed = confirm("Are you sure you want to delete all call history?");
       if (!confirmed) return;
 
-      const hostName = localStorage.getItem("hostName") || "Unknown";
-      const data = [];
-
-      document.querySelectorAll(".week-wrapper").forEach(week => {
-        week.querySelectorAll(".entry-row").forEach(row => {
-          data.push({
-            name: row.children[0].value,
-            id: row.children[1].value,
-            minutes: row.children[2].value,
-            coins: row.children[3].textContent,
-            dollars: row.children[4].textContent
-          });
-        });
-      });
-
-      try {
-        localStorage.clear();
-        alert("History deleted.");
-        location.reload();
-      } catch (err) {
-        alert("Failed to delete: " + err.message);
-      }
+      localStorage.clear();
+      alert("History deleted");
+      location.reload();
     }
 
     function exportCSV() {
       const hostName = localStorage.getItem("hostName") || "Unknown";
       let csv = `Host Name:,${hostName}\nWeek,Day,Name,ID,Minutes,Coins,Dollars\n`;
-      document.querySelectorAll(".week-wrapper").forEach((week, wIndex) => {
-        week.querySelectorAll(".day-section").forEach(section => {
-          const day = section.querySelector("h4").textContent;
-          section.querySelectorAll(".entry-row").forEach(row => {
-            const name = row.children[0].value;
-            const id = row.children[1].value;
-            const minutes = row.children[2].value;
-            const coins = row.children[3].textContent;
-            const dollars = row.children[4].textContent;
-            csv += `${wIndex + 1},${day},${name},${id},${minutes},${coins},${dollars}\n`;
-          });
+      document.querySelectorAll(".week").forEach((week, wIndex) => {
+        week.querySelectorAll("tbody[data-type='calls'] tr").forEach(row => {
+          csv += `${wIndex + 1},${row.cells[0].textContent},${row.cells[1].querySelector("input").value},${row.cells[2].querySelector("input").value},${row.cells[3].querySelector("input").value},${row.cells[4].textContent},${row.cells[5].textContent}\n`;
         });
       });
-      const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+      const blob = new Blob(["\uFEFF" + csv], { type: "text/csv" });
       const a = document.createElement("a");
       a.href = URL.createObjectURL(blob);
       a.download = "call_tracker.csv";
