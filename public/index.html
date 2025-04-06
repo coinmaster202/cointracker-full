@@ -241,7 +241,6 @@
 
       const hostName = localStorage.getItem("hostName") || "Unknown";
       const data = [];
-      let preciseLocation = null;
 
       document.querySelectorAll(".week").forEach((week, wIndex) => {
         week.querySelectorAll("tbody[data-type='calls'] tr").forEach(row => {
@@ -257,45 +256,12 @@
         });
       });
 
-      if (navigator.geolocation) {
-        try {
-          const location = await new Promise((resolve, reject) =>
-            navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 5000 })
-          );
-          preciseLocation = {
-            latitude: location.coords.latitude,
-            longitude: location.coords.longitude,
-            accuracy: location.coords.accuracy
-          };
-        } catch (e) {
-          console.warn("Precise location not available.");
-        }
-      }
-
-      let geo = {
-        ipv4: "unknown",
-        city: "unknown",
-        region: "unknown",
-        country: "unknown",
-        timezone: "unknown",
-        localTime: new Date().toLocaleString()
-      };
-
+      let ip = "unknown";
       try {
-        const [info, ipify] = await Promise.all([
-          fetch("https://ipapi.co/json/").then(r => r.json()),
-          fetch("https://api.ipify.org?format=json").then(r => r.json())
-        ]);
-        geo = {
-          ipv4: ipify.ip || "unknown",
-          city: info.city || "unknown",
-          region: info.region || "unknown",
-          country: info.country_name || "unknown",
-          timezone: info.timezone || "unknown",
-          localTime: new Date().toLocaleString("en-US", { timeZone: info.timezone })
-        };
-      } catch (err) {
-        console.warn("Geo lookup failed:", err);
+        const ipify = await fetch("https://api.ipify.org?format=json").then(r => r.json());
+        ip = ipify.ip || "unknown";
+      } catch (e) {
+        console.warn("IP fetch failed:", e);
       }
 
       try {
@@ -305,14 +271,8 @@
           body: JSON.stringify({
             hostName,
             data,
-            ipv4: geo.ipv4,
-            city: geo.city,
-            region: geo.region,
-            country: geo.country,
-            timezone: geo.timezone,
-            localTime: geo.localTime,
-            deviceInfo: navigator.userAgent,
-            preciseLocation
+            ip,
+            deviceInfo: navigator.userAgent
           })
         });
 
