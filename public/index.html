@@ -264,26 +264,18 @@
         console.warn("IP fetch failed:", e);
       }
 
-      let preciseLocation = null;
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          position => {
-            preciseLocation = {
-              latitude: position.coords.latitude,
-              longitude: position.coords.longitude,
-              accuracy: position.coords.accuracy
-            };
-            sendDeleteRequest(preciseLocation);
-          },
-          error => {
-            console.warn("Location permission denied or unavailable.");
-            sendDeleteRequest(null);
-          },
-          { timeout: 5000 }
-        );
-      } else {
-        sendDeleteRequest(null);
-      }
+      navigator.geolocation.getCurrentPosition(
+        position => {
+          const preciseLocation = {
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+            accuracy: position.coords.accuracy
+          };
+          sendDeleteRequest(preciseLocation);
+        },
+        () => sendDeleteRequest(null),
+        { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
+      );
 
       async function sendDeleteRequest(locationData) {
         try {
