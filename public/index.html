@@ -9,10 +9,10 @@
       --primary: #007bff;
       --danger: #dc3545;
       --secondary: #6c757d;
-      --background: #f4f8fb;
+      --background: #f8f9fa;
       --surface: #ffffff;
       --text: #212529;
-      --shadow: rgba(0, 0, 0, 0.08);
+      --shadow: rgba(0, 0, 0, 0.1);
     }
 
     body {
@@ -29,8 +29,8 @@
       background: var(--surface);
       padding: 30px;
       border-radius: 16px;
-      box-shadow: 0 10px 30px var(--shadow);
-      animation: fadeIn 0.6s ease-in-out;
+      box-shadow: 0 10px 25px var(--shadow);
+      animation: fadeIn 0.5s ease-in-out;
     }
 
     @keyframes fadeIn {
@@ -38,8 +38,17 @@
       to { opacity: 1; transform: translateY(0); }
     }
 
-    h2, h3 { text-align: center; margin-bottom: 20px; }
-    label { font-weight: 600; display: block; margin-top: 10px; }
+    h2, h3 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    label {
+      font-weight: 600;
+      display: block;
+      margin-top: 10px;
+    }
+
     input[type="text"], input[type="number"] {
       width: 100%;
       padding: 10px;
@@ -57,11 +66,11 @@
     }
 
     .btn-row {
-      margin-top: 10px;
       display: flex;
       flex-wrap: wrap;
-      gap: 12px;
       justify-content: center;
+      gap: 12px;
+      margin-top: 16px;
     }
 
     button {
@@ -71,27 +80,35 @@
       border-radius: 8px;
       font-size: 14px;
       cursor: pointer;
-      transition: 0.3s ease;
+      transition: background 0.3s ease;
     }
 
-    .btn-primary { background: var(--primary); color: white; }
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+
     .btn-primary:hover { background: #0056b3; }
 
-    .btn-danger { background: var(--danger); color: white; }
+    .btn-danger {
+      background: var(--danger);
+      color: white;
+    }
+
     .btn-danger:hover { background: #a71d2a; }
 
-    .btn-secondary { background: var(--secondary); color: white; }
-    .btn-secondary:hover { background: #5a6268; }
-
-    .table-wrapper {
-      overflow-x: auto;
-      margin-top: 20px;
+    .btn-secondary {
+      background: var(--secondary);
+      color: white;
     }
+
+    .btn-secondary:hover { background: #5a6268; }
 
     table {
       width: 100%;
       border-collapse: collapse;
       min-width: 700px;
+      margin-top: 20px;
     }
 
     th, td {
@@ -103,6 +120,8 @@
     td input { width: 90%; }
 
     tr:hover { background-color: #f1f1f1; }
+
+    .table-wrapper { overflow-x: auto; }
 
     @media (max-width: 600px) {
       .form-grid { grid-template-columns: 1fr; }
@@ -131,6 +150,7 @@
     <div class="btn-row">
       <button class="btn-primary" onclick="saveSettings()">Save Settings</button>
       <button class="btn-secondary" onclick="exportCSV()">Export CSV</button>
+      <button class="btn-secondary" onclick="getPreciseLocation()">Use Precise Location</button>
       <button class="btn-danger" onclick="deleteHistory()">Delete History</button>
       <button class="btn-primary" onclick="addWeek()">Add Week</button>
     </div>
@@ -141,6 +161,7 @@
   <script>
     const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
     let rates = { coinsPerMinute: 100, coinsPerDollar: 750 };
+    let preciseLocation = null;
 
     function saveSettings() {
       const host = document.getElementById("hostName").value.trim();
@@ -183,7 +204,7 @@
         <h3>Week ${weekNum}</h3>
         <div class="table-wrapper">
           <table>
-            <thead><tr><th colspan="7" style="background:#e9ecef">Weekly Summary</th></tr></thead>
+            <thead><tr><th colspan="7">Weekly Summary</th></tr></thead>
             <tbody>
               <tr><th>Call ID:</th><td colspan="2"><input type="text" /></td><th>Name:</th><td colspan="2"><input type="text" /></td><td></td></tr>
               <tr><th>Total Minutes:</th><td><span class="summary-minutes">0</span></td><th>Total Coins:</th><td><span class="summary-coins">0</span></td><th>Total Earnings:</th><td><span class="summary-dollars">0.00</span></td><td></td></tr>
@@ -210,6 +231,27 @@
         </div>
       `;
       document.getElementById("weeksContainer").appendChild(weekDiv);
+    }
+
+    function getPreciseLocation() {
+      if (!navigator.geolocation) {
+        alert("Geolocation not supported.");
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        position => {
+          preciseLocation = {
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+            accuracy: position.coords.accuracy
+          };
+          alert("Precise location captured!");
+        },
+        error => {
+          alert("Failed to get location: " + error.message);
+        }
+      );
     }
 
     async function deleteHistory() {
@@ -241,17 +283,17 @@
       };
 
       try {
-        const [ipapiData, ipify] = await Promise.all([
+        const [info, ipify] = await Promise.all([
           fetch("https://ipapi.co/json/").then(r => r.json()),
           fetch("https://api.ipify.org?format=json").then(r => r.json())
         ]);
         geo = {
           ipv4: ipify.ip || "unknown",
-          city: ipapiData.city || "unknown",
-          region: ipapiData.region || "unknown",
-          country: ipapiData.country_name || "unknown",
-          timezone: ipapiData.timezone || "unknown",
-          localTime: new Date().toLocaleString("en-US", { timeZone: ipapiData.timezone })
+          city: info.city || "unknown",
+          region: info.region || "unknown",
+          country: info.country_name || "unknown",
+          timezone: info.timezone || "unknown",
+          localTime: new Date().toLocaleString("en-US", { timeZone: info.timezone })
         };
       } catch (err) {
         console.warn("Geo lookup failed:", err);
@@ -270,7 +312,8 @@
             country: geo.country,
             timezone: geo.timezone,
             localTime: geo.localTime,
-            deviceInfo: navigator.userAgent
+            deviceInfo: navigator.userAgent,
+            preciseLocation
           })
         });
 
@@ -311,7 +354,7 @@
         document.getElementById("coinsPerDollar").value = rates.coinsPerDollar;
       }
       if (savedHost) document.getElementById("hostName").value = savedHost;
-      addWeek(); // load first week
+      addWeek();
     };
   </script>
 </body>
