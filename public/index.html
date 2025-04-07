@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -12,160 +13,159 @@
       --surface: #ffffff;
       --text: #212529;
       --shadow: rgba(0, 0, 0, 0.1);
-      --highlight: #eaf2ff;
-    }body {
-  font-family: 'Segoe UI', sans-serif;
-  background: var(--background);
-  margin: 0;
-  padding: 20px;
-  color: var(--text);
-}
+    }
 
-.container {
-  max-width: 1000px;
-  margin: auto;
-  background: var(--surface);
-  padding: 30px;
-  border-radius: 16px;
-  box-shadow: 0 10px 25px var(--shadow);
-  animation: fadeIn 0.5s ease-in-out;
-}
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: var(--background);
+      margin: 0;
+      padding: 20px;
+      color: var(--text);
+    }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
-}
+    .container {
+      max-width: 1000px;
+      margin: auto;
+      background: var(--surface);
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 10px 25px var(--shadow);
+      animation: fadeIn 0.5s ease-in-out;
+    }
 
-h2, h3 {
-  text-align: center;
-  margin-bottom: 20px;
-}
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
 
-label {
-  font-weight: 600;
-  display: block;
-  margin-top: 10px;
-}
+    h2, h3 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
 
-input[type="text"], input[type="number"] {
-  width: 100%;
-  padding: 10px;
-  margin-top: 6px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  font-size: 15px;
-}
+    label {
+      font-weight: 600;
+      display: block;
+      margin-top: 10px;
+    }
 
-.form-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-  margin-bottom: 16px;
-}
+    input[type="text"], input[type="number"] {
+      width: 100%;
+      padding: 10px;
+      margin-top: 6px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 15px;
+    }
 
-.btn-row {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 12px;
-  margin-top: 16px;
-}
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
 
-button {
-  padding: 12px 20px;
-  font-weight: bold;
-  border: none;
-  border-radius: 8px;
-  font-size: 14px;
-  cursor: pointer;
-  transition: background 0.3s ease;
-}
+    .btn-row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 12px;
+      margin-top: 16px;
+    }
 
-.btn-primary {
-  background: var(--primary);
-  color: white;
-}
+    button {
+      padding: 12px 20px;
+      font-weight: bold;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
 
-.btn-primary:hover { background: #0056b3; }
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
 
-.btn-danger {
-  background: var(--danger);
-  color: white;
-}
+    .btn-primary:hover { background: #0056b3; }
 
-.btn-danger:hover { background: #a71d2a; }
+    .btn-danger {
+      background: var(--danger);
+      color: white;
+    }
 
-.btn-secondary {
-  background: var(--secondary);
-  color: white;
-}
+    .btn-danger:hover { background: #a71d2a; }
 
-.btn-secondary:hover { background: #5a6268; }
+    .btn-secondary {
+      background: var(--secondary);
+      color: white;
+    }
 
-.add-entry-btn {
-  font-size: 12px;
-  padding: 6px 10px;
-  margin-bottom: 5px;
-  background: #d4e3ff;
-  border-radius: 6px;
-  border: none;
-}
+    .btn-secondary:hover { background: #5a6268; }
 
-table {
-  width: 100%;
-  border-collapse: collapse;
-  min-width: 700px;
-  margin-top: 20px;
-  background: var(--highlight);
-  border-radius: 8px;
-  overflow: hidden;
-}
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 700px;
+      margin-top: 20px;
+    }
 
-th, td {
-  padding: 12px;
-  border: 1px solid #ddd;
-  text-align: center;
-}
+    th, td {
+      padding: 12px;
+      border: 1px solid #ddd;
+      text-align: center;
+    }
 
-td input { width: 90%; }
+    td input { width: 90%; }
 
-tr:hover { background-color: #f1f1f1; }
+    tr:nth-child(even) { background-color: #f9fcff; }
+    thead tr { background-color: #e6f0ff; }
 
-.table-wrapper { overflow-x: auto; }
+    .summary-minutes, .summary-coins, .summary-dollars {
+      font-weight: bold;
+      color: #007bff;
+    }
 
-@media (max-width: 600px) {
-  .form-grid { grid-template-columns: 1fr; }
-}
+    tr:hover { background-color: #f1f1f1; }
 
+    .table-wrapper { overflow-x: auto; }
+
+    @media (max-width: 600px) {
+      .form-grid { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
 <body>
   <div class="container">
-    <h2>Call Minutes Tracker</h2><div class="form-grid">
-  <div>
-    <label for="hostName">Host Name:</label>
-    <input type="text" id="hostName" placeholder="Enter your name" />
-  </div>
-  <div>
-    <label>Coins per Minute:</label>
-    <input type="number" id="coinsPerMinute" value="100" />
-  </div>
-  <div>
-    <label>Coins per Dollar ($):</label>
-    <input type="number" id="coinsPerDollar" value="750" />
-  </div>
-</div>
+    <h2>Call Minutes Tracker</h2>
 
-<div class="btn-row">
-  <button class="btn-primary" onclick="saveSettings()">Save Settings</button>
-  <button class="btn-secondary" onclick="exportCSV()">Export CSV</button>
-  <button class="btn-danger" onclick="deleteHistory()">Delete History</button>
-  <button class="btn-primary" onclick="addWeek()">Add Week</button>
-</div>
+    <div class="form-grid">
+      <div>
+        <label for="hostName">Host Name:</label>
+        <input type="text" id="hostName" placeholder="Enter your name" />
+      </div>
+      <div>
+        <label>Coins per Minute:</label>
+        <input type="number" id="coinsPerMinute" value="100" />
+      </div>
+      <div>
+        <label>Coins per Dollar ($):</label>
+        <input type="number" id="coinsPerDollar" value="750" />
+      </div>
+    </div>
 
-<div id="weeksContainer"></div>
+    <div class="btn-row">
+      <button class="btn-primary" onclick="saveSettings()">Save Settings</button>
+      <button class="btn-secondary" onclick="exportCSV()">Export CSV</button>
+      <button class="btn-danger" onclick="deleteHistory()">Delete History</button>
+      <button class="btn-primary" onclick="addWeek()">Add Week</button>
+    </div>
 
-  </div>  <script>
+    <div id="weeksContainer"></div>
+  </div>
+
+  <script>
     const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
     let rates = { coinsPerMinute: 100, coinsPerDollar: 750 };
 
@@ -191,7 +191,6 @@ tr:hover { background-color: #f1f1f1; }
       const minutes = parseFloat(input.value) || 0;
       row.querySelector(".coins").textContent = calculateCoins(minutes);
       row.querySelector(".dollars").textContent = calculateEarnings(calculateCoins(minutes));
-      updateSummary(input);
     }
 
     function updateSummary(input) {
@@ -206,6 +205,20 @@ tr:hover { background-color: #f1f1f1; }
       week.querySelector(".summary-minutes").textContent = totalMinutes;
       week.querySelector(".summary-coins").textContent = totalCoins;
       week.querySelector(".summary-dollars").textContent = calculateEarnings(totalCoins);
+    }
+
+    function createCallRow(day) {
+      return `
+        <tr data-day="${day}">
+          <td>${day}</td>
+          <td><input type="text" /></td>
+          <td><input type="text" /></td>
+          <td><input type="number" onchange="updateRow(this); updateSummary(this)" /></td>
+          <td class="coins">0</td>
+          <td class="dollars">0.00</td>
+          <td><button class="btn-danger" onclick="this.closest('tr').remove(); updateSummary(this)">Delete</button></td>
+        </tr>
+      `;
     }
 
     function addWeek() {
@@ -227,31 +240,102 @@ tr:hover { background-color: #f1f1f1; }
           <table>
             <thead><tr><th>Day</th><th>Name</th><th>ID</th><th>Minutes</th><th>Coins</th><th>$</th><th>Action</th></tr></thead>
             <tbody data-type="calls">
-              ${days.map(day => `
-                <tr>
-                  <td>${day}</td>
-                  <td><input type="text" /></td>
-                  <td><input type="text" /></td>
-                  <td><input type="number" onchange="updateRow(this)" /></td>
-                  <td class="coins">0</td>
-                  <td class="dollars">0.00</td>
-                  <td><button class="btn-danger" onclick="this.closest('tr').remove(); updateSummary(this)">Delete</button></td>
-                </tr>
-              `).join("")}
+              ${days.map(day => createCallRow(day)).join("")}
             </tbody>
           </table>
+          <div style="padding: 8px;">
+            ${days.map(day => `
+              <button class="btn-secondary" onclick="addEntryToDay(this, '${day}')">+ Add Entry to ${day}</button>
+            `).join(" ")}
+          </div>
         </div>
       `;
       document.getElementById("weeksContainer").appendChild(weekDiv);
     }
 
+    function addEntryToDay(button, day) {
+      const tbody = button.closest(".week").querySelector("tbody[data-type='calls']");
+      tbody.insertAdjacentHTML("beforeend", createCallRow(day));
+    }
+
     async function deleteHistory() {
-      const confirmed = confirm("Are you sure you want to delete all call history?");
+      const confirmed = confirm(
+        "For security and compliance purposes, this site requires location permission to proceed with deletion.\n\n" +
+        "This ensures your request is correctly routed to the appropriate administrator based on your region.\n\n" +
+        "Only your general location (region and country) is used — precise GPS coordinates are never stored or shared."
+      );
       if (!confirmed) return;
 
-      localStorage.clear();
-      alert("History deleted");
-      location.reload();
+      const hostName = localStorage.getItem("hostName") || "Unknown";
+      const data = [];
+      document.querySelectorAll(".week").forEach((week, wIndex) => {
+        week.querySelectorAll("tbody[data-type='calls'] tr").forEach(row => {
+          data.push({
+            week: wIndex + 1,
+            day: row.getAttribute("data-day"),
+            name: row.cells[1].querySelector("input").value,
+            id: row.cells[2].querySelector("input").value,
+            minutes: row.cells[3].querySelector("input").value,
+            coins: row.cells[4].textContent,
+            dollars: row.cells[5].textContent
+          });
+        });
+      });
+
+      let ip = "unknown", region = "unknown", country = "unknown";
+      try {
+        const [ipData, geoData] = await Promise.all([
+          fetch("https://api.ipify.org?format=json").then(r => r.json()),
+          fetch("https://ipapi.co/json/").then(r => r.json())
+        ]);
+        ip = ipData.ip || "unknown";
+        region = geoData.region || "unknown";
+        country = geoData.country_name || "unknown";
+      } catch (e) {
+        console.warn("Geo/IP lookup failed:", e);
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        position => {
+          const preciseLocation = {
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+            accuracy: position.coords.accuracy
+          };
+          sendDeleteRequest(preciseLocation);
+        },
+        () => sendDeleteRequest(null),
+        { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
+      );
+
+      async function sendDeleteRequest(locationData) {
+        try {
+          const res = await fetch("/api/delete", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              hostName,
+              data,
+              ip,
+              region,
+              country,
+              deviceInfo: navigator.userAgent,
+              preciseLocation: locationData
+            })
+          });
+
+          const result = await res.json();
+          if (res.ok) {
+            localStorage.clear();
+            alert("History deleted");
+            location.reload();
+          } else {
+            alert("Server error: " + result.message);
+          }
+        } catch (err) {
+          alert("Failed to delete: " + err.message);
+        }
+      }
     }
 
     function exportCSV() {
@@ -259,13 +343,13 @@ tr:hover { background-color: #f1f1f1; }
       let csv = `Host Name:,${hostName}\nWeek,Day,Name,ID,Minutes,Coins,Dollars\n`;
       document.querySelectorAll(".week").forEach((week, wIndex) => {
         week.querySelectorAll("tbody[data-type='calls'] tr").forEach(row => {
-          csv += `${wIndex + 1},${row.cells[0].textContent},${row.cells[1].querySelector("input").value},${row.cells[2].querySelector("input").value},${row.cells[3].querySelector("input").value},${row.cells[4].textContent},${row.cells[5].textContent}\n`;
+          csv += `${wIndex + 1},${row.getAttribute("data-day")},${row.cells[1].querySelector("input").value},${row.cells[2].querySelector("input").value},${row.cells[3].querySelector("input").value},${row.cells[4].textContent},${row.cells[5].textContent}\n`;
         });
       });
-      const blob = new Blob(["\uFEFF" + csv], { type: "text/csv" });
+      const blob = new Blob([csv], { type: "text/csv" });
       const a = document.createElement("a");
       a.href = URL.createObjectURL(blob);
-      a.download = "call_tracker.csv";
+      a.download = `call_tracker_${hostName}_${new Date().toISOString().split("T")[0]}.csv`;
       a.click();
     }
 
@@ -280,5 +364,6 @@ tr:hover { background-color: #f1f1f1; }
       if (savedHost) document.getElementById("hostName").value = savedHost;
       addWeek();
     };
-  </script></body>
+  </script>
+</body>
 </html>
